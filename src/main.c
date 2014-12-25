@@ -25,10 +25,7 @@ int main(void)
 
 	for(x = 0; x < 100; x++);
 	
-	//SysTick_Config(SystemCoreClock/100);
+	SysTick_Config(SystemCoreClock/100);
 
-	while(1) {
-		GPIOA->ODR ^= 0x7;
-	}	
-
+	while(1);
 }
