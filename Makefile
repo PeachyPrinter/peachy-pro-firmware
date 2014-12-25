@@ -69,7 +69,8 @@ $(PROJ_NAME).elf: $(SRCS)
 	$(SIZE) $(PROJ_NAME).elf
 	
 program: $(PROJ_NAME).bin
-	openocd -f $(OPENOCD_BOARD_DIR)/stm32f0discovery.cfg -f $(OPENOCD_PROC_FILE) -c "stm_flash `pwd`/$(PROJ_NAME).bin" -c shutdown
+#	openocd -f $(OPENOCD_BOARD_DIR)/stm32f0discovery.cfg -f $(OPENOCD_PROC_FILE) -c "stm_flash `pwd`/$(PROJ_NAME).bin" -c shutdown
+	dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v
 
 clean:
 	find ./ -name '*~' | xargs rm -f	
