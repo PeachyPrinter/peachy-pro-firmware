@@ -2,17 +2,18 @@
 #include "stm32f0xx_tim.h"
 #include "stm32f0xx_gpio.h"
 
-void SysTick_Handler(void) {
-  static uint16_t tick = 0;
-  static char val = 0;
+static volatile int g_xout = 0;
+static volatile int g_yout = 128;
 
-  switch (tick++) {
-  	case 100:
-  		tick = 0;
-		if (val) { val = 0; } else { val = 1; }
-  		GPIOA->ODR = (GPIOA->ODR & 0xFFFFFE) | val;
-  		break;
-  }
+void SysTick_Handler(void) {
+  g_xout += 1;
+  g_yout += 1;
+
+  if (g_xout > 255) { g_xout = 0; }
+  if (g_yout > 255) { g_yout = 0; }
+
+  TIM_SetCompare1(TIM2, g_xout);
+  TIM_SetCompare2(TIM2, g_yout);
 }
 
 void initialize_tim2(void) {
@@ -72,6 +73,9 @@ int main(void)
         GPIO_Init(GPIOA, &gp);
 
         initialize_tim2();
+
+        SysTick_Config(SystemCoreClock / 100);
+
 	while(1) {
           GPIOA->ODR ^= 0x04;
         }
