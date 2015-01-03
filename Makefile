@@ -6,6 +6,7 @@ PROJ_NAME=main
 
 # Location of the Libraries folder from the STM32F0xx Standard Peripheral Library
 STD_PERIPH_LIB=Libraries
+USB_PERIPH_LIB=USB
 
 # Location of the linker scripts
 LDSCRIPT_INC=Device/ldscripts
@@ -34,13 +35,14 @@ CFLAGS += -Wl,--gc-sections -Wl,-Map=$(PROJ_NAME).map
 ###################################################
 
 vpath %.c src
-vpath %.a $(STD_PERIPH_LIB)
+vpath %.a $(STD_PERIPH_LIB) $(USB_PERIPH_LIB)
 
 ROOT=$(shell pwd)
 
 CFLAGS += -I inc -I $(STD_PERIPH_LIB) -I $(STD_PERIPH_LIB)/CMSIS/Device/ST/STM32F0xx/Include
 CFLAGS += -I $(STD_PERIPH_LIB)/CMSIS/Include -I $(STD_PERIPH_LIB)/STM32F0xx_StdPeriph_Driver/inc
 CFLAGS += -include $(STD_PERIPH_LIB)/stm32f0xx_conf.h
+CFLAGS += -I $(USB_PERIPH_LIB)/inc
 
 SRCS += Device/startup_stm32f0xx.s # add startup file to build
 
@@ -54,7 +56,10 @@ OBJS = $(SRCS:.c=.o)
 
 .PHONY: lib proj
 
-all: lib proj
+all: usb lib proj
+
+usb:
+	$(MAKE) -C $(USB_PERIPH_LIB)
 
 lib:
 	$(MAKE) -C $(STD_PERIPH_LIB)
@@ -67,7 +72,7 @@ $(PROJ_NAME).elf: $(SRCS)
 	$(OBJCOPY) -O binary $(PROJ_NAME).elf $(PROJ_NAME).bin
 	$(OBJDUMP) -St $(PROJ_NAME).elf >$(PROJ_NAME).lst
 	$(SIZE) $(PROJ_NAME).elf
-	
+
 program: $(PROJ_NAME).bin
 #	openocd -f $(OPENOCD_BOARD_DIR)/stm32f0discovery.cfg -f $(OPENOCD_PROC_FILE) -c "stm_flash `pwd`/$(PROJ_NAME).bin" -c shutdown
 	dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v

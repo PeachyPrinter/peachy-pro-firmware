@@ -2,6 +2,9 @@
 #include "stm32f0xx_tim.h"
 #include "stm32f0xx_gpio.h"
 
+#include "usbd_cdc_core.h"
+#include "usbd_usr.h"
+
 static volatile int g_xout = 512;
 static volatile int g_yout = 512;
 
