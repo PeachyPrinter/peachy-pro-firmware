@@ -9,13 +9,13 @@ STD_PERIPH_LIB=lib/cmsis_lib
 USB_PERIPH_LIB=lib/cmsis_usb
 
 # Location of the linker scripts
-LDSCRIPT_INC=Device/ldscripts
+LDSCRIPT_INC=lib/cmsis_boot/ldscripts
 
 # location of OpenOCD Board .cfg files (only used with 'make program')
 OPENOCD_BOARD_DIR=/usr/local/share/openocd/scripts/board
 
 # Configuration (cfg) file containing programming directives for OpenOCD
-OPENOCD_PROC_FILE=extra/stm32f0-openocd.cfg
+OPENOCD_PROC_FILE=stlink.cfg
 
 # that's it, no need to change anything below this line!
 
@@ -44,7 +44,7 @@ CFLAGS += -I $(STD_PERIPH_LIB)/CMSIS/Include -I $(STD_PERIPH_LIB)/STM32F0xx_StdP
 CFLAGS += -include $(STD_PERIPH_LIB)/stm32f0xx_conf.h
 CFLAGS += -I $(USB_PERIPH_LIB)/inc
 
-SRCS += Device/startup_stm32f0xx.s # add startup file to build
+SRCS += lib/cmsis_boot/startup/startup_stm32f0xx.s # add startup file to build
 
 # need if you want to build with -DUSE_CMSIS 
 #SRCS += stm32f0_discovery.c
