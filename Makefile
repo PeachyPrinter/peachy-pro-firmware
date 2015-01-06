@@ -39,10 +39,8 @@ vpath %.a $(STD_PERIPH_LIB) $(USB_PERIPH_LIB)
 
 ROOT=$(shell pwd)
 
-CFLAGS += -I inc -I $(STD_PERIPH_LIB) -I $(STD_PERIPH_LIB)/CMSIS/Device/ST/STM32F0xx/Include
-CFLAGS += -I $(STD_PERIPH_LIB)/CMSIS/Include -I $(STD_PERIPH_LIB)/STM32F0xx_StdPeriph_Driver/inc
-CFLAGS += -include $(STD_PERIPH_LIB)/stm32f0xx_conf.h
-CFLAGS += -I $(USB_PERIPH_LIB)/inc
+CFLAGS += -I $(STD_PERIPH_LIB)/include -I lib/cmsis_boot -I lib/cmsis_core
+CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h
 
 SRCS += lib/cmsis_boot/startup/startup_stm32f0xx.s # add startup file to build
 
@@ -67,7 +65,7 @@ lib:
 proj: 	$(PROJ_NAME).elf
 
 $(PROJ_NAME).elf: $(SRCS)
-	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -lstmusb -L$(LDSCRIPT_INC) -Tstm32f0.ld 
+	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -L$(LDSCRIPT_INC) -Tstm32f0.ld 
 	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
 	$(OBJCOPY) -O binary $(PROJ_NAME).elf $(PROJ_NAME).bin
 	$(OBJDUMP) -St $(PROJ_NAME).elf >$(PROJ_NAME).lst
