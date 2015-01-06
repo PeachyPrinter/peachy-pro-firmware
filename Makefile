@@ -41,6 +41,7 @@ ROOT=$(shell pwd)
 
 CFLAGS += -I./inc -I $(STD_PERIPH_LIB)/include -I lib/cmsis_boot -I lib/cmsis_core
 CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h 
+CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Driver/inc
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Class/cdc/inc 
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Core/inc
 
