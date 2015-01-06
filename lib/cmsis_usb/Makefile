@@ -3,16 +3,11 @@ AR=arm-none-eabi-ar
 
 LIBNAME = libstm32f0-usb.a
 
-SRCS = usb_bsp.c \
-  usbd_cdc_vcp.c \
-  usbd_desc.c \
-  usbd_pwr.c \
-  usbd_usr.c
-
+SRCS = usb_core.c usb_dcd.c usb_dcd_int.c usbd_core.c usbd_ioreq.c usbd_req.c usbd_cdc_core.c
 
 ##############################################################################
 
-vpath %.c src
+vpath %.c STM32_USB_Device_Driver/src STM32_USB_Device_Library/Core/src STM32_USB_Device_Library/Class/cdc/src
 
 CFLAGS  = -g -O2 -Wall
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m0 -march=armv6s-m
