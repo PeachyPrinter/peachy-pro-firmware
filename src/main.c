@@ -26,6 +26,12 @@ void USB_Init(void)
             &USR_cb);
 }
 
+void USB_LP_IRQHandler(void)
+{
+  USB_Istr();
+}
+
+
 void SysTick_Handler(void) {
   static int dir = 1;
 
@@ -72,8 +78,6 @@ void initialize_tim2(void) {
 
 int main(void)
 {
-	volatile int x = 0;
-
         RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
         GPIO_InitTypeDef gp;
@@ -84,12 +88,25 @@ int main(void)
         gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
         GPIO_Init(GPIOA, &gp);
 
+        // Set up PA4 as a debug pin
+        gp.GPIO_Pin = GPIO_Pin_4;
+        gp.GPIO_Mode = GPIO_Mode_OUT;
+        gp.GPIO_Speed = GPIO_Speed_50MHz;
+        gp.GPIO_OType = GPIO_OType_PP;
+        gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        GPIO_Init(GPIOA, &gp);
+        
+
         initialize_tim2();
 
         SysTick_Config(SystemCoreClock / 500);
 
         USB_Init();
 
+        int x = 0;
 	while(1) {
+          if (x > 255) { x = 0; }
+          GPIO_WriteBit(GPIOA, GPIO_Pin_4, x > 128);
+          x++;
         }
 }
