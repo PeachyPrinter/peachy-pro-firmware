@@ -74,9 +74,7 @@ int main(void)
 {
 	volatile int x = 0;
 
-        //RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-        RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-        __asm("dsb");
+        RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
         GPIO_InitTypeDef gp;
         gp.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_2;
