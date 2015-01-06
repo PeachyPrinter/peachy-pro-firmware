@@ -34,11 +34,14 @@ void USB_LP_IRQHandler(void)
 
 void SysTick_Handler(void) {
   static int dir = 1;
-
+  
   g_xout += dir;
   g_yout += dir;
 
-  if (g_xout > 1023) { dir = -1; }
+  if (g_xout > 1023) { 
+    dir = -1; 
+    Puts("bonk bonk\r\n");
+  }
   if (g_xout < 1) { dir = 1; }
 
   TIM_SetCompare1(TIM2, g_xout);
@@ -76,6 +79,45 @@ void initialize_tim2(void) {
   TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
 }
 
+uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len);
+
+// USB putchar function
+void PutChar(unsigned char outchar)
+{
+	unsigned char outbuf[2];
+	outbuf[0] = outchar;
+	VCP_DataTx(outbuf,1);
+}
+
+// USB get char no wait
+int GetCharnw(void)
+{
+	int intchar;
+
+	if(usbrxheadptr!=usbrxtailptr) {
+		intchar = usbrxbuffer[usbrxtailptr++];
+		if(usbrxtailptr==USB_RX_BUFFERSIZE) usbrxtailptr = 0;
+		return intchar;
+		}
+	else return -1;
+}
+
+// USB get char wait
+unsigned char GetChar(void)
+{
+	int intchar;
+
+	while((intchar=GetCharnw())==-1) ;
+	return (unsigned int) intchar;
+}
+
+void Puts(const char *outstrg)
+{
+	int i;
+
+	for(i=0; outstrg[i]; i++) PutChar(outstrg[i]);
+}
+
 int main(void)
 {
         RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
@@ -89,7 +131,7 @@ int main(void)
         GPIO_Init(GPIOA, &gp);
 
         // Set up PA4 as a debug pin
-        gp.GPIO_Pin = GPIO_Pin_4;
+        gp.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
         gp.GPIO_Mode = GPIO_Mode_OUT;
         gp.GPIO_Speed = GPIO_Speed_50MHz;
         gp.GPIO_OType = GPIO_OType_PP;
@@ -105,8 +147,10 @@ int main(void)
 
         int x = 0;
 	while(1) {
-          if (x > 255) { x = 0; }
-          GPIO_WriteBit(GPIOA, GPIO_Pin_4, x > 128);
-          x++;
+          if (x > 2048) { 
+            x = 0;
+          }
+          //GPIO_WriteBit(GPIOA, GPIO_Pin_4, x > 1024);
+          x++;         
         }
 }

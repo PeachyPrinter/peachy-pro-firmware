@@ -106,6 +106,31 @@ usbd_conf.h
 This is enough to get it to build, so long as we don't actually call
 USB_Init().
 
+# USB Transmission
+
+- Handle_USBAsynchXfer reads out from the APP_RX_Buffer
+- Gets called from usbd_cdc_SOF
+- Checks USB_Tx_State
+- usbd_cdc_DataIn also involved
+- seems to ping-pong between Handle_USBAsynchXfer and usbd_cdc_DataIn
+
+- usbd_cdc_DataIn doesn't seem to ever get called?
+
+- USBD_CDC_cb -> reference to this DataIn function
+- gets stuffed into USB_CORE_HANDLE* pdef -> class_cb
+- type USBD_Class_cb_TypeDef
+
+- class_cb->DataIn gets called from usbd_core.c:USBD_DataInStage
+- USBD_DataInStage is added to the USBD_DCD_INT_cb structure
+
+- oooh lots of #ifdefs around this
+
+## USBD_DataOutStage
+
+(gdb) p *pdev->dev.device_status
+$765 = 4162848
+(gdb) p *pdev->dev.device_state
+$766 = 134233989
 
 
 

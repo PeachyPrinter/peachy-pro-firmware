@@ -54,7 +54,7 @@ extern uint32_t APP_Rx_ptr_in;    /* Increment this pointer or roll it back to
 static uint16_t VCP_Init     (void);
 static uint16_t VCP_DeInit   (void);
 static uint16_t VCP_Ctrl     (uint32_t Cmd, uint8_t* Buf, uint32_t Len);
-static uint16_t VCP_DataTx   (uint8_t* Buf, uint32_t Len);
+uint16_t VCP_DataTx   (uint8_t* Buf, uint32_t Len);
 static uint16_t VCP_DataRx   (uint8_t* Buf, uint32_t Len);
 
 CDC_IF_Prop_TypeDef VCP_fops = 
@@ -165,20 +165,15 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
   * @param  Len: Number of data to be sent (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else VCP_FAIL
   */
-static uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len)
+uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len)
 {
-  if (linecoding.datatype == 7)
-  {
-  }
-  else if (linecoding.datatype == 8)
-  {
-  }
+  int i;
   
-  if(APP_Rx_ptr_in == APP_RX_DATA_SIZE)
-  {
-    APP_Rx_ptr_in = 0;
+  for(i=0; i<Len; i++) {
+    APP_Rx_Buffer[APP_Rx_ptr_in++] = Buf[i];
+    if(APP_Rx_ptr_in == APP_RX_DATA_SIZE)  APP_Rx_ptr_in = 0;
   }
-  return 0; // TODO: figure out what to actually return
+  return USBD_OK;
 }
 #define     USB_RX_BUFFERSIZE 256
 
@@ -204,6 +199,8 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
   
   /* aja: This appears to be a ring buffer. This is from the sample
    * code and we're going to need to hack it up. */
+
+  GPIO_WriteBit(GPIOA, GPIO_Pin_4, !GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4));
 
   for (i = 0; i < Len; i++)
   {
