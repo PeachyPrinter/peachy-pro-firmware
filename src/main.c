@@ -10,13 +10,13 @@ USB_CORE_HANDLE  USB_Device_dev ;
 static volatile int g_xout = 512;
 static volatile int g_yout = 512;
 
-/*void USB_Init(void)
+void USB_Init(void)
 {
   USBD_Init(&USB_Device_dev,
             &USR_desc,
             &USBD_CDC_cb,
             &USR_cb);
-            }*/
+}
 
 void SysTick_Handler(void) {
   static int dir = 1;
