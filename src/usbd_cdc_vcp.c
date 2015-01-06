@@ -178,7 +178,7 @@ static uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len)
   {
     APP_Rx_ptr_in = 0;
   }
-
+  return 0; // TODO: figure out what to actually return
 }
 #define     USB_RX_BUFFERSIZE 256
 
