@@ -15,7 +15,8 @@ all: libstmusb.a
 
 CFLAGS += -Iinc
 
-SRCS = usb_core.c  usb_dcd.c  usb_dcd_int.c usbd_cdc_core.c
+SRCS = usb_bsp.c  usb_core.c  usb_dcd.c  usbd_cdc_core.c \
+  usbd_cdc_vcp.c  usb_dcd_int.c  usbd_desc.c  usbd_pwr.c  usbd_usr.c
 OBJS = $(SRCS:.c=.o)
 
 vpath %.c src

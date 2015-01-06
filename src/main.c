@@ -5,8 +5,18 @@
 #include "usbd_cdc_core.h"
 #include "usbd_usr.h"
 
+USB_CORE_HANDLE  USB_Device_dev ;
+
 static volatile int g_xout = 512;
 static volatile int g_yout = 512;
+
+/*void USB_Init(void)
+{
+  USBD_Init(&USB_Device_dev,
+            &USR_desc,
+            &USBD_CDC_cb,
+            &USR_cb);
+            }*/
 
 void SysTick_Handler(void) {
   static int dir = 1;
@@ -68,9 +78,20 @@ int main(void)
         gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
         GPIO_Init(GPIOA, &gp);
 
+	gp.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14;
+	gp.GPIO_Mode = GPIO_Mode_AF;
+	gp.GPIO_Speed = GPIO_Speed_50MHz;
+	gp.GPIO_OType = GPIO_OType_OD;
+	gp.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOA, &gp);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource13, GPIO_AF_0); // SWD
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource14, GPIO_AF_0);
+
         initialize_tim2();
 
         SysTick_Config(SystemCoreClock / 500);
+
+        //USB_Init();
 
 	while(1) {
         }
