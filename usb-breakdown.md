@@ -99,6 +99,7 @@ specifically for a VCP to USART adapter.
 
 # Files to include then...
 
+usbd_desc.{c,h} - our usb descriptor
 
 
 

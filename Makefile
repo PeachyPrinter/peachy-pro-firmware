@@ -39,8 +39,10 @@ vpath %.a $(STD_PERIPH_LIB) $(USB_PERIPH_LIB)
 
 ROOT=$(shell pwd)
 
-CFLAGS += -I $(STD_PERIPH_LIB)/include -I lib/cmsis_boot -I lib/cmsis_core
-CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h
+CFLAGS += -I./inc -I $(STD_PERIPH_LIB)/include -I lib/cmsis_boot -I lib/cmsis_core
+CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h 
+CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Class/cdc/inc 
+CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Core/inc
 
 SRCS += lib/cmsis_boot/startup/startup_stm32f0xx.s # add startup file to build
 
