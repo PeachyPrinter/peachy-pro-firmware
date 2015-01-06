@@ -100,6 +100,13 @@ specifically for a VCP to USART adapter.
 # Files to include then...
 
 usbd_desc.{c,h} - our usb descriptor
+usb_conf.h
+usbd_conf.h
+
+This is enough to get it to build, so long as we don't actually call
+USB_Init().
+
+
 
 
 

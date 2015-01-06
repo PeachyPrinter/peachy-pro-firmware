@@ -91,7 +91,7 @@ int main(void)
 
         SysTick_Config(SystemCoreClock / 500);
 
-        //USB_Init();
+        USB_Init();
 
 	while(1) {
         }
