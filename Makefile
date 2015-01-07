@@ -70,13 +70,18 @@ proj: 	$(PROJ_NAME).elf
 $(PROJ_NAME).elf: $(SRCS)
 	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -lstm32f0-usb -L$(LDSCRIPT_INC) -Tstm32f0.ld 
 	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
-	$(OBJCOPY) -O binary $(PROJ_NAME).elf $(PROJ_NAME).bin
 	$(OBJDUMP) -St $(PROJ_NAME).elf >$(PROJ_NAME).lst
 	$(SIZE) $(PROJ_NAME).elf
+
+$(PROJ_NAME).bin: $(PROJ_NAME).elf
+	$(OBJCOPY) -O binary $(PROJ_NAME).elf $(PROJ_NAME).bin
 
 program: $(PROJ_NAME).bin
 #	openocd -f $(OPENOCD_BOARD_DIR)/stm32f0discovery.cfg -f $(OPENOCD_PROC_FILE) -c "stm_flash `pwd`/$(PROJ_NAME).bin" -c shutdown
 	dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v
+
+programocd: $(PROJ_NAME).bin
+	openocd -f stlink.cfg -c "program $(PROJ_NAME).bin 0x08000000" -c "reset run"
 
 clean:
 	find ./ -name '*~' | xargs rm -f	

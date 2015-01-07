@@ -50,6 +50,8 @@ extern uint32_t APP_Rx_ptr_in;    /* Increment this pointer or roll it back to
                                      start address when writing received data
                                      in the buffer APP_Rx_Buffer. */
 
+extern uint32_t APP_Rx_ptr_out; // This is what the VP library reads from
+
 /* Private function prototypes -----------------------------------------------*/
 static uint16_t VCP_Init     (void);
 static uint16_t VCP_DeInit   (void);
@@ -172,6 +174,9 @@ uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len)
   for(i=0; i<Len; i++) {
     APP_Rx_Buffer[APP_Rx_ptr_in++] = Buf[i];
     if(APP_Rx_ptr_in == APP_RX_DATA_SIZE)  APP_Rx_ptr_in = 0;
+    if(APP_Rx_ptr_in == APP_Rx_ptr_out) { // we've caught up to the output
+      return USBD_FAIL;
+    }
   }
   return USBD_OK;
 }

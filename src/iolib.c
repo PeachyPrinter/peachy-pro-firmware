@@ -1,4 +1,5 @@
 #include "iolib.h"
+#include "usbd_core.h"
 
 /* aja: terribly named variables that match the usbd_cdc_vcp.c USB receive buffers */
 #define     USB_RX_BUFFERSIZE 256
@@ -13,7 +14,7 @@ void PutChar(unsigned char outchar)
 {
 	unsigned char outbuf[2];
 	outbuf[0] = outchar;
-	VCP_DataTx(outbuf,1);
+	while(VCP_DataTx(outbuf,1) == USBD_FAIL);
 }
 
 // USB get char no wait

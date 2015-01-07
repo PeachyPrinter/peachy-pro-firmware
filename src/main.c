@@ -34,7 +34,6 @@ void SysTick_Handler(void) {
 
   if (g_xout > 1023) { 
     dir = -1; 
-    Puts("bonk bonk\r\n");
   }
   if (g_xout < 1) { dir = 1; }
 
@@ -73,6 +72,31 @@ void initialize_tim2(void) {
   TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
 }
 
+void ioloop() {
+  static char buffer[32] = {0};
+  static uint8_t idx = 0;
+
+  int input = GetCharnw();
+  if (input != -1) {
+    buffer[idx] = (char)(input & 0xFF);
+    PutChar(buffer[idx]);
+    idx++;
+    buffer[idx] = '\0';
+
+    if (idx >= 32) {
+      Puts("overflow\r\n");
+      idx = 0;
+      buffer[0] = '\0';
+    }
+  }
+  if (idx && (buffer[idx-1] == '\r') || (buffer[idx-1] == '\n')) {
+    idx = 0;
+    buffer[0] = '\0';
+    Puts("reset!\r\n");
+  }
+}
+
+
 int main(void)
 {
         RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
@@ -93,7 +117,6 @@ int main(void)
         gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
         GPIO_Init(GPIOA, &gp);
         
-
         initialize_tim2();
 
         SysTick_Config(SystemCoreClock / 500);
@@ -102,10 +125,6 @@ int main(void)
 
         int x = 0;
 	while(1) {
-          if (x > 2048) { 
-            x = 0;
-          }
-          //GPIO_WriteBit(GPIOA, GPIO_Pin_4, x > 1024);
-          x++;         
+          ioloop();
         }
 }
