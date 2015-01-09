@@ -18,7 +18,7 @@ CFLAGS += -I../cmsis_lib/include
 
 OBJS = $(SRCS:.c=.o)
 
-.PHONY: all
+.PHONY: all clean
 
 all: $(LIBNAME)
 
