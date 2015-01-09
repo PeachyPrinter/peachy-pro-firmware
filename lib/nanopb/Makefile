@@ -1,7 +1,7 @@
 CC=arm-none-eabi-gcc
 AR=arm-none-eabi-ar
 
-LIBNAME = libstm32f0-usb.a
+LIBNAME = libnanopb.a
 
 SRCS = pb_encode.c pb_decode.c
 
