@@ -7,6 +7,7 @@ PROJ_NAME=main
 # Location of the Libraries folder from the STM32F0xx Standard Peripheral Library
 STD_PERIPH_LIB=lib/cmsis_lib
 USB_PERIPH_LIB=lib/cmsis_usb
+NANOPB_LIB=lib/nanopb
 
 # Location of the linker scripts
 LDSCRIPT_INC=lib/cmsis_boot/ldscripts
@@ -55,9 +56,9 @@ OBJS = $(SRCS:.c=.o)
 
 ###################################################
 
-.PHONY: lib proj usb
+.PHONY: lib proj usb nanopb
 
-all: lib proj usb
+all: lib usb nanopb proj
 
 usb:
 	$(MAKE) -C $(USB_PERIPH_LIB)
@@ -65,10 +66,13 @@ usb:
 lib:
 	$(MAKE) -C $(STD_PERIPH_LIB)
 
+nanopb: 
+	$(MAKE) -C $(NANOPB_LIB)
+
 proj: 	$(PROJ_NAME).elf
 
-$(PROJ_NAME).elf: $(SRCS)
-	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -lstm32f0-usb -L$(LDSCRIPT_INC) -Tstm32f0.ld 
+$(PROJ_NAME).elf: $(SRCS) 
+	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -lstm32f0-usb -L$(LDSCRIPT_INC) -Tstm32f0.ld -L$(NANOPB_LIB) -lnanopb
 	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
 	$(OBJDUMP) -St $(PROJ_NAME).elf >$(PROJ_NAME).lst
 	$(SIZE) $(PROJ_NAME).elf
@@ -82,6 +86,11 @@ program: $(PROJ_NAME).bin
 
 programocd: $(PROJ_NAME).bin
 	openocd -f stlink.cfg -c "program $(PROJ_NAME).bin 0x08000000" -c "reset run"
+
+cleanall: clean
+	$(MAKE) -C $(STD_PERIPH_LIB) clean
+	$(MAKE) -C $(USB_PERIPH_LIB) clean
+	$(MAKE) -C $(NANOPB_LIB) clean
 
 clean:
 	find ./ -name '*~' | xargs rm -f	
