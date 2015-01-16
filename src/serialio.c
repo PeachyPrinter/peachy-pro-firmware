@@ -1,6 +1,7 @@
 #include "serialio.h"
 #include "iolib.h"
-
+#include "pb_decode.h"
+#include "move.pb.h"
 /**
  * Serial protocol
  *
@@ -21,12 +22,20 @@
 */
 
 
-#define HEADER 0x12
-#define FOOTER 0x13
-#define ESCAPE_CHAR 0x14
+#define HEADER 0x40
+#define FOOTER 0x41
+#define ESCAPE_CHAR 0x42
 
-void handle_type_1(char* buffer, int len);
-void handle_type_2(char* buffer, int len);
+void handle_move(char* buffer, int len);
+void handle_nack(char* buffer, int len);
+void handle_ack(char* buffer, int len);
+
+static type_callback_map_t callbacks[] = {
+  { NACK, &handle_nack },
+  { ACK, &handle_ack },
+  { MOVE, &handle_move }, 
+  { 0, 0 }
+};
 
 serial_state_t serial_searching(uint8_t* idx, char* buffer, char input) {
   if(input != HEADER) {
@@ -56,6 +65,15 @@ serial_state_t serial_reading_esc(uint8_t* idx, char* buffer, char input) {
 }
 
 serial_state_t serial_done(uint8_t* idx, char* buffer) {
+  type_callback_map_t* cur = callbacks;
+  while(cur->callback != 0) {
+    if (cur->message_type == buffer[0]) {
+      buffer[*idx] = 0;
+      cur->callback(&buffer[1], (*idx)-1);
+      break;
+    }
+    cur++;
+  }
   return SEARCHING;
 }
 
@@ -78,5 +96,23 @@ void serialio_feed() {
       state = serial_done(&idx, buffer); 
     }
   }
+}
+
+/*****************************************/
+/* Callbacks for handling messages */
+
+void handle_move(char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+  Move message;
+
+  status = pb_decode(&stream, Move_fields, &message);
+
+}
+void handle_nack(char* buffer, int len) {
+
+}
+void handle_ack(char* buffer, int len) {
+
 }
 
