@@ -21,7 +21,7 @@ void initialize_pwm(void) {
   TIM_TimeBaseInitTypeDef ti;
   ti.TIM_Prescaler = 0;
   ti.TIM_CounterMode = TIM_CounterMode_Up;
-  ti.TIM_Period = 1024;
+  ti.TIM_Period = 256;
   ti.TIM_ClockDivision = TIM_CKD_DIV1;
   ti.TIM_RepetitionCounter = 0;
   TIM_TimeBaseInit(TIM2, &ti);
@@ -44,17 +44,41 @@ void initialize_pwm(void) {
   TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
 }
 
+typedef struct  {
+  uint32_t x;
+  uint32_t y;
+} point;
+
+const point points[] = {
+  {32, 32},
+  {32, 192},
+  {128, 128},
+  {192, 192},
+  {192, 32},
+  {0, 0}
+};
+
 void update_pwm(void) {
-  static int dir = 1;
-  
-  g_xout += dir;
-  g_yout += dir;
+  static int idx = 0;
+  static int slowdown = 0;
 
-  if (g_xout > 1023) { 
-    dir = -1; 
+  slowdown += 1;
+  if (slowdown < 10) {
+    return;
   }
-  if (g_xout < 1) { dir = 1; }
+  slowdown = 0;
 
+  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 1);
+
+  g_xout = points[idx].x;
+  g_yout = points[idx].y;
+
+  idx += 1;
+  if (points[idx].x == 0 && points[idx].y == 0) {
+    idx = 0;
+  }
   TIM_SetCompare1(TIM2, g_xout);
   TIM_SetCompare3(TIM2, g_yout);
+
+  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 0);
 }
