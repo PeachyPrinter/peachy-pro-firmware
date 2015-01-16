@@ -1,5 +1,5 @@
 # put your *.o targets here, make should handle the rest!
-SRCS = main.c system_stm32f0xx.c usbd_desc.c usb_bsp.c usbd_usr.c usbd_cdc_vcp.c usbd_pwr.c iolib.c serialio.c pwmout.c
+SRCS = main.c system_stm32f0xx.c usbd_desc.c usb_bsp.c usbd_usr.c usbd_cdc_vcp.c usbd_pwr.c iolib.c serialio.c pwmout.c protos/move.pb.c
 
 # all the files will be generated with this name (main.elf, main.bin, main.hex, etc)
 PROJ_NAME=main
@@ -37,6 +37,7 @@ CFLAGS += -Wl,--gc-sections -Wl,-Map=$(PROJ_NAME).map
 
 vpath %.c src
 vpath %.a $(STD_PERIPH_LIB) $(USB_PERIPH_LIB)
+vpath %.proto protos
 
 ROOT=$(shell pwd)
 
@@ -45,7 +46,7 @@ CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Driver/inc
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Class/cdc/inc 
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Core/inc
-
+CFLAGS += -I./lib/nanopb
 SRCS += lib/cmsis_boot/startup/startup_stm32f0xx.s # add startup file to build
 
 # need if you want to build with -DUSE_CMSIS 
@@ -86,6 +87,12 @@ program: $(PROJ_NAME).bin
 
 programocd: $(PROJ_NAME).bin
 	openocd -f stlink.cfg -c "program $(PROJ_NAME).bin 0x08000000" -c "reset run"
+
+protos/%.pb.c : protos/%.pb
+	python lib/nanopb/generator/nanopb_generator.py $<
+
+protos/%.pb : %.proto
+	protoc -o$@ $<
 
 cleanall: clean
 	$(MAKE) -C $(STD_PERIPH_LIB) clean
