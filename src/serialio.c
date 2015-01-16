@@ -35,6 +35,8 @@ serial_state_t serial_searching(uint8_t* idx, char* buffer, char input) {
   if(input != HEADER) {
     return SEARCHING;
   }
+  *idx = 0;
+  buffer[*idx] = 0;
   return READING;
 }
 
@@ -43,7 +45,6 @@ serial_state_t serial_reading(uint8_t* idx, char* buffer, char input) {
     return READING_ESCAPED;
   }
   if(input == FOOTER) {
-    Puts("OK\r\n");
     return DONE;
   }
   buffer[*idx] = input;
@@ -57,7 +58,7 @@ serial_state_t serial_reading_esc(uint8_t* idx, char* buffer, char input) {
   return READING;
 }
 
-serial_state_t serial_done(uint8_t* idx, char* buffer, char input) {
+serial_state_t serial_done(uint8_t* idx, char* buffer) {
   return SEARCHING;
 }
 
@@ -73,7 +74,11 @@ void serialio_feed() {
     case SEARCHING: state = serial_searching(&idx, buffer, (char)input); break;
     case READING: state = serial_reading(&idx, buffer, (char)input); break;
     case READING_ESCAPED: state = serial_reading_esc(&idx, buffer, (char)input); break;
-    case DONE: state = serial_done(&idx, buffer, (char)input); break;
+    default:
+      break;
+    }
+    if (state == DONE) { // Special case DONE because it doesn't need any input
+      state = serial_done(&idx, buffer); 
     }
   }
 }
