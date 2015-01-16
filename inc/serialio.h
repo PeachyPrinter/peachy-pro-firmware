@@ -13,6 +13,12 @@ typedef struct {
   void (*callback)(char* buffer, int len);
 } type_callback_map_t;
 
+typedef enum {
+  NACK = 0,
+  ACK = 1,
+  MOVE = 2
+} message_types_t;
+
 void serialio_feed(void);
 
 #endif
