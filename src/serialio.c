@@ -27,20 +27,38 @@ typedef enum {
   DONE = 4
 } serial_state_t;
 
-serial_state_t serial_searching(uint8_t* idx, char* buffer, char input) {
+#define HEADER 0x12
+#define FOOTER 0x13
+#define ESCAPE_CHAR 0x14
 
+serial_state_t serial_searching(uint8_t* idx, char* buffer, char input) {
+  if(input != HEADER) {
+    return SEARCHING;
+  }
+  return READING;
 }
 
 serial_state_t serial_reading(uint8_t* idx, char* buffer, char input) {
-
+  if(input == ESCAPE_CHAR) {
+    return READING_ESCAPED;
+  }
+  if(input == FOOTER) {
+    Puts("OK\r\n");
+    return DONE;
+  }
+  buffer[*idx] = input;
+  (*idx) += 1;
+  return READING;
 }
 
 serial_state_t serial_reading_esc(uint8_t* idx, char* buffer, char input) {
-
+  buffer[*idx] = ~input;
+  (*idx) += 1;
+  return READING;
 }
 
 serial_state_t serial_done(uint8_t* idx, char* buffer, char input) {
-
+  return SEARCHING;
 }
 
 void serialio_feed() {
