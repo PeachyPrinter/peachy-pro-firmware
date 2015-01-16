@@ -20,16 +20,13 @@
  * DONE - read 0x13
 */
 
-typedef enum {
-  SEARCHING = 1,
-  READING = 2,
-  READING_ESCAPED = 3,
-  DONE = 4
-} serial_state_t;
 
 #define HEADER 0x12
 #define FOOTER 0x13
 #define ESCAPE_CHAR 0x14
+
+void handle_type_1(char* buffer, int len);
+void handle_type_2(char* buffer, int len);
 
 serial_state_t serial_searching(uint8_t* idx, char* buffer, char input) {
   if(input != HEADER) {
