@@ -21,6 +21,8 @@
  * DONE - read 0x13
 */
 
+extern volatile int g_xout;
+extern volatile int g_yout;
 
 #define HEADER 0x40
 #define FOOTER 0x41
@@ -107,7 +109,10 @@ void handle_move(char* buffer, int len) {
   Move message;
 
   status = pb_decode(&stream, Move_fields, &message);
-
+  if(status) {
+    g_xout = (message.x >> 8) & 0xFF;
+    g_yout = (message.y >> 8) & 0xFF;
+  }
 }
 void handle_nack(char* buffer, int len) {
 

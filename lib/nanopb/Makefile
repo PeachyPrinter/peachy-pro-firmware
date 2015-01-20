@@ -3,7 +3,7 @@ AR=arm-none-eabi-ar
 
 LIBNAME = libnanopb.a
 
-SRCS = pb_encode.c pb_decode.c
+SRCS = pb_encode.c pb_decode.c pb_common.c
 
 ##############################################################################
 

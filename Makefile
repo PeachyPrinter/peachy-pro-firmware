@@ -46,7 +46,7 @@ CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Driver/inc
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Class/cdc/inc 
 CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Core/inc
-CFLAGS += -I./lib/nanopb
+CFLAGS += -I./lib/nanopb -I./protos
 SRCS += lib/cmsis_boot/startup/startup_stm32f0xx.s # add startup file to build
 
 # need if you want to build with -DUSE_CMSIS 

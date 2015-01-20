@@ -1,7 +1,7 @@
 #include "pwmout.h"
 
-static volatile int g_xout = 512;
-static volatile int g_yout = 512;
+volatile int g_xout = 512;
+volatile int g_yout = 512;
 
 void initialize_pwm(void) {
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
@@ -59,24 +59,8 @@ const point points[] = {
 };
 
 void update_pwm(void) {
-  static int idx = 0;
-  static int slowdown = 0;
-
-  slowdown += 1;
-  if (slowdown < 10) {
-    return;
-  }
-  slowdown = 0;
-
   GPIO_WriteBit(GPIOA, GPIO_Pin_4, 1);
 
-  g_xout = points[idx].x;
-  g_yout = points[idx].y;
-
-  idx += 1;
-  if (points[idx].x == 0 && points[idx].y == 0) {
-    idx = 0;
-  }
   TIM_SetCompare1(TIM2, g_xout);
   TIM_SetCompare3(TIM2, g_yout);
 

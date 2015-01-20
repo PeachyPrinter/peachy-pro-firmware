@@ -46,7 +46,7 @@ int main(void)
   
   initialize_pwm();
   
-  SysTick_Config(SystemCoreClock / 20);
+  SysTick_Config(SystemCoreClock / 2000);
   
   USB_Init();
   
