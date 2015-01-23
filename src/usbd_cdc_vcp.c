@@ -184,7 +184,7 @@ uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len)
 
 extern int usbrxheadptr,usbrxtailptr;
 extern unsigned char usbrxbuffer[];
-
+extern int vcp_overflow;
 /**
   * @brief  VCP_DataRx
   *         Data received over USB OUT endpoint are sent over CDC interface 
@@ -196,7 +196,7 @@ extern unsigned char usbrxbuffer[];
   *                 
   * @param  Buf: Buffer of data to be received
   * @param  Len: Number of data received (in bytes)
-  * @retval Result of the operation: USBD_OK if all operations are OK else VCP_FAIL
+  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
 {
@@ -204,14 +204,17 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
   
   /* aja: This appears to be a ring buffer. This is from the sample
    * code and we're going to need to hack it up. */
+  int orig_usbrxheadptr = usbrxheadptr;
 
   for (i = 0; i < Len; i++)
   {
     usbrxbuffer[usbrxheadptr++] = *(Buf + i);
     if(usbrxheadptr==USB_RX_BUFFERSIZE) usbrxheadptr = 0;
     if(usbrxheadptr==usbrxtailptr) {
-      usbrxtailptr++;
-      if(usbrxtailptr==USB_RX_BUFFERSIZE) usbrxtailptr = 0;
+      // Don't overwrite the tail, return a NAK instead
+      usbrxheadptr = orig_usbrxheadptr;
+      vcp_overflow = 1;
+      return USBD_FAIL;
     }    
   } 
  

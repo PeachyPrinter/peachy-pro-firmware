@@ -6,6 +6,7 @@
 
 int usbrxheadptr=0, usbrxtailptr=0;
 unsigned char usbrxbuffer[USB_RX_BUFFERSIZE];
+int vcp_overflow = 0;
 
 uint16_t VCP_DataTx (uint8_t* Buf, uint32_t Len);
 
@@ -22,11 +23,21 @@ int GetCharnw(void)
 {
 	int intchar;
 
-	if(usbrxheadptr!=usbrxtailptr) {
-		intchar = usbrxbuffer[usbrxtailptr++];
-		if(usbrxtailptr==USB_RX_BUFFERSIZE) usbrxtailptr = 0;
-		return intchar;
-		}
+        if (vcp_overflow) {
+          vcp_overflow = 0;
+          usbd_cdc_PrepareDeferredRx();
+        }
+
+	if(usbrxheadptr != usbrxtailptr) {
+          intchar = usbrxbuffer[usbrxtailptr++];
+
+          if(usbrxtailptr==USB_RX_BUFFERSIZE) {
+            usbrxtailptr = 0;
+          }
+
+          return intchar;
+        }
+
 	else return -1;
 }
 

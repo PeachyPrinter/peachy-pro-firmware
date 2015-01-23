@@ -31,7 +31,7 @@ points = [ (fsd/2.0 + -sz*(13*math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.c
 
 for i in xrange(10000):
     print sent, (sent / (time.time() - start))
-    for x,y in points:  
+    for x,y in points:
         
         move = move_pb2.Move()
         move.id = 1234
@@ -40,4 +40,3 @@ for i in xrange(10000):
         move.laserPower = 24
         
         send(move.SerializeToString())
-        time.sleep(0.0001)

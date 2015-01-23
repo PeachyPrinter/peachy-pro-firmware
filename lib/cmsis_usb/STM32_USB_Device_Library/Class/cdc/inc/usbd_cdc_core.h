@@ -90,6 +90,8 @@ extern USBD_Class_cb_TypeDef  USBD_CDC_cb;
 
 /* Exported functions ------------------------------------------------------- */ 
 
+void usbd_cdc_PrepareDeferredRx(void);
+
 #endif  /* __USB_CDC_CORE_H_ */
   
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

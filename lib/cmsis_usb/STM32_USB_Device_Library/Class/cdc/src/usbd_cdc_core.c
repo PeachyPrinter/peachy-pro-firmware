@@ -469,6 +469,13 @@ uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
   return USBD_OK;
 }
 
+typedef struct {
+  void* pdev;
+  uint8_t epnum;
+} deferred_prepare_rx_t;
+
+static deferred_prepare_rx_t deferred_rx;
+
 /**
   * @brief  usbd_cdc_DataOut
   *         Data received on non-control Out endpoint
@@ -485,15 +492,25 @@ uint8_t  usbd_cdc_DataOut (void *pdev, uint8_t epnum)
   
   /* USB data will be immediately processed, this allow next USB traffic being 
      NAKed till the end of the application Xfer */
-  APP_FOPS.pIf_DataRx(USB_Rx_Buffer, USB_Rx_Cnt);
-  
-  /* Prepare Out endpoint to receive next packet */
-  DCD_EP_PrepareRx(pdev,
-                   CDC_OUT_EP,
-                   (uint8_t*)(USB_Rx_Buffer),
-                   CDC_DATA_OUT_PACKET_SIZE);
-
+  uint16_t res = APP_FOPS.pIf_DataRx(USB_Rx_Buffer, USB_Rx_Cnt);
+  if (res == USBD_OK) {
+    /* Prepare Out endpoint to receive next packet */
+    DCD_EP_PrepareRx(pdev,
+                     CDC_OUT_EP,
+                     (uint8_t*)(USB_Rx_Buffer),
+                     CDC_DATA_OUT_PACKET_SIZE);
+  } else {
+    deferred_rx.pdev = pdev;
+    deferred_rx.epnum = epnum;
+  }
   return USBD_OK;
+}
+
+void usbd_cdc_PrepareDeferredRx(void) {
+  if (deferred_rx.pdev != NULL) {
+    DCD_EP_PrepareRx(deferred_rx.pdev, CDC_OUT_EP, (uint8_t*)(USB_Rx_Buffer), CDC_DATA_OUT_PACKET_SIZE);
+    deferred_rx.pdev = NULL;
+  }
 }
 
 /**
