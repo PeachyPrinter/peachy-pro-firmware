@@ -40,4 +40,4 @@ for i in xrange(10000):
         move.laserPower = 24
         
         send(move.SerializeToString())
-        time.sleep(0.0005)
+        time.sleep(0.0001)
