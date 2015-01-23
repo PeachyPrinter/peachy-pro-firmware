@@ -205,8 +205,6 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
   /* aja: This appears to be a ring buffer. This is from the sample
    * code and we're going to need to hack it up. */
 
-  GPIO_WriteBit(GPIOA, GPIO_Pin_4, !GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4));
-
   for (i = 0; i < Len; i++)
   {
     usbrxbuffer[usbrxheadptr++] = *(Buf + i);

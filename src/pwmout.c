@@ -59,10 +59,6 @@ const point points[] = {
 };
 
 void update_pwm(void) {
-  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 1);
-
   TIM_SetCompare1(TIM2, g_xout);
   TIM_SetCompare3(TIM2, g_yout);
-
-  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 0);
 }
