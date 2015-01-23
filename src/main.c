@@ -21,7 +21,11 @@ void USB_Init(void)
 
 void USB_LP_IRQHandler(void)
 {
+  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 1);
+
   USB_Istr();
+
+  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 0);
 }
 
 
