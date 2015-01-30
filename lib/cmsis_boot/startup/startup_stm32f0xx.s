@@ -185,7 +185,7 @@ g_pfnVectors:
   .word SPI2_IRQHandler
   .word USART1_IRQHandler
   .word USART2_IRQHandler
-  .word 0 // usb goes here?
+  .word 0 
   .word CEC_IRQHandler
   .word USB_LP_IRQHandler
   .word BootRAM          /* @0x108. This is for boot in RAM mode for 
