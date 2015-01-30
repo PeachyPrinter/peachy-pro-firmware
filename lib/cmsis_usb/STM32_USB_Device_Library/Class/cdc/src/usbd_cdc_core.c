@@ -136,8 +136,8 @@ const uint8_t usbd_cdc_CfgDesc[USB_CDC_CONFIG_DESC_SIZ] =
   0x02,   /* bNumInterfaces: 2 interface */
   0x01,   /* bConfigurationValue: Configuration value */
   0x00,   /* iConfiguration: Index of string descriptor describing the configuration */
-  0xC0,   /* bmAttributes: self powered */
-  0x32,   /* MaxPower 0 mA */
+  0x80,   /* bmAttributes: self powered */
+  250,   /* MaxPower 0 mA */
   
   /*---------------------------------------------------------------------------*/
   
