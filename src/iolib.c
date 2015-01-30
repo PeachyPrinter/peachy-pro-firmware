@@ -24,8 +24,10 @@ int GetCharnw(void)
 	int intchar;
 
         if (vcp_overflow) {
+          __disable_irq();
           vcp_overflow = 0;
           usbd_cdc_PrepareDeferredRx();
+          __enable_irq();
         }
 
 	if(usbrxheadptr != usbrxtailptr) {
