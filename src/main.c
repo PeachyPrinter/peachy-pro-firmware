@@ -22,9 +22,7 @@ void USB_Init(void)
 void USB_LP_IRQHandler(void)
 {
   GPIO_WriteBit(GPIOA, GPIO_Pin_4, 1);
-
   USB_Istr();
-
   GPIO_WriteBit(GPIOA, GPIO_Pin_4, 0);
 }
 
@@ -50,10 +48,10 @@ int main(void)
   
   initialize_pwm();
   
-  SysTick_Config(SystemCoreClock / 2000);
+//  SysTick_Config(SystemCoreClock / 2000);
   
   USB_Init();
-  
+  char buf[64];
   while(1) {
     serialio_feed();
   }
