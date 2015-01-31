@@ -2,29 +2,16 @@
 #include "stm32f0xx_tim.h"
 #include "stm32f0xx_gpio.h"
 
-#include "usbd_cdc_core.h"
-#include "usbd_usr.h"
-
 #include "iolib.h"
 #include "serialio.h"
 #include "pwmout.h"
 
-USB_CORE_HANDLE  USB_Device_dev ;
+#include <usb_core.h>
 
-void USB_Init(void)
+/*void USB_LP_IRQHandler(void)
 {
-  USBD_Init(&USB_Device_dev,
-            &USR_desc,
-            &USBD_CDC_cb,
-            &USR_cb);
-}
-
-void USB_LP_IRQHandler(void)
-{
-  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 1);
   USB_Istr();
-  GPIO_WriteBit(GPIOA, GPIO_Pin_4, 0);
-}
+  }*/
 
 
 void SysTick_Handler(void) {
@@ -34,6 +21,7 @@ void SysTick_Handler(void) {
 
 int main(void)
 {
+  USB_Start();
   
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
   
@@ -50,8 +38,6 @@ int main(void)
   
 //  SysTick_Config(SystemCoreClock / 2000);
   
-  USB_Init();
-  char buf[64];
   while(1) {
     serialio_feed();
   }

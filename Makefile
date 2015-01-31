@@ -1,5 +1,5 @@
 # put your *.o targets here, make should handle the rest!
-SRCS = main.c system_stm32f0xx.c usbd_desc.c usb_bsp.c usbd_usr.c usbd_cdc_vcp.c usbd_pwr.c iolib.c serialio.c pwmout.c protos/move.pb.c
+SRCS = main.c system_stm32f0xx.c iolib.c serialio.c pwmout.c protos/move.pb.c
 
 # all the files will be generated with this name (main.elf, main.bin, main.hex, etc)
 PROJ_NAME=main
@@ -43,7 +43,7 @@ ROOT=$(shell pwd)
 
 CFLAGS += -I./inc -I $(STD_PERIPH_LIB)/include -I lib/cmsis_boot -I lib/cmsis_core
 CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h 
-CFLAGS += -I $(USB_PERIPH_LIB)/include
+CFLAGS += -I $(USB_PERIPH_LIB)/inc
 CFLAGS += -I./lib/nanopb -I./protos
 SRCS += lib/cmsis_boot/startup/startup_stm32f0xx.s # add startup file to build
 
@@ -71,7 +71,7 @@ nanopb:
 proj: 	$(PROJ_NAME).elf
 
 $(PROJ_NAME).elf: $(SRCS)
-	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -lpersea-usb -L$(LDSCRIPT_INC) -Tstm32f0.ld -L$(NANOPB_LIB) -lnanopb
+	$(CC) $(CFLAGS) $^ -o $@ -L$(USB_PERIPH_LIB) -lpersea-usb -L$(STD_PERIPH_LIB) -lstm32f0  -L$(LDSCRIPT_INC) -Tstm32f0.ld -L$(NANOPB_LIB) -lnanopb
 	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
 	$(OBJDUMP) -St $(PROJ_NAME).elf >$(PROJ_NAME).lst
 	$(SIZE) $(PROJ_NAME).elf
