@@ -6,7 +6,7 @@ PROJ_NAME=main
 
 # Location of the Libraries folder from the STM32F0xx Standard Peripheral Library
 STD_PERIPH_LIB=lib/cmsis_lib
-USB_PERIPH_LIB=lib/cmsis_usb
+USB_PERIPH_LIB=lib/persea_usb
 NANOPB_LIB=lib/nanopb
 
 # Location of the linker scripts
@@ -43,9 +43,7 @@ ROOT=$(shell pwd)
 
 CFLAGS += -I./inc -I $(STD_PERIPH_LIB)/include -I lib/cmsis_boot -I lib/cmsis_core
 CFLAGS += -include lib/cmsis_boot/stm32f0xx_conf.h 
-CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Driver/inc
-CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Class/cdc/inc 
-CFLAGS += -I./lib/cmsis_usb/STM32_USB_Device_Library/Core/inc
+CFLAGS += -I $(USB_PERIPH_LIB)/include
 CFLAGS += -I./lib/nanopb -I./protos
 SRCS += lib/cmsis_boot/startup/startup_stm32f0xx.s # add startup file to build
 
@@ -73,7 +71,7 @@ nanopb:
 proj: 	$(PROJ_NAME).elf
 
 $(PROJ_NAME).elf: $(SRCS)
-	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -lstm32f0-usb -L$(LDSCRIPT_INC) -Tstm32f0.ld -L$(NANOPB_LIB) -lnanopb
+	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0 -L$(USB_PERIPH_LIB) -lpersea-usb -L$(LDSCRIPT_INC) -Tstm32f0.ld -L$(NANOPB_LIB) -lnanopb
 	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
 	$(OBJDUMP) -St $(PROJ_NAME).elf >$(PROJ_NAME).lst
 	$(SIZE) $(PROJ_NAME).elf
