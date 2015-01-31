@@ -44,7 +44,6 @@ void USB_Start(void) {
   /* Set interrupt mask */
   _SetCNTR(CNTR_CTRM | CNTR_WKUPM | CNTR_SUSPM | CNTR_ERRM | CNTR_SOFM | CNTR_ESOFM | CNTR_RESETM);
 
-
   /* Connect the interrupts from the USB macrocell to the NVIC */
   NVIC_InitTypeDef NVIC_InitStructure;
   
@@ -53,5 +52,6 @@ void USB_Start(void) {
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
+  /* From here on out, everything is going to get handled through the USB Interrupt Handler */
 }
 
