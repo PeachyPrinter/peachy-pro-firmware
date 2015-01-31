@@ -8,12 +8,6 @@
 
 #include <usb_core.h>
 
-/*void USB_LP_IRQHandler(void)
-{
-  USB_Istr();
-  }*/
-
-
 void SysTick_Handler(void) {
   update_pwm();
 }

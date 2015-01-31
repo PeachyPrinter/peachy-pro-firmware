@@ -51,7 +51,38 @@ void USB_Start(void) {
   NVIC_InitStructure.NVIC_IRQChannelPriority = 1;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
-
+  
   /* From here on out, everything is going to get handled through the USB Interrupt Handler */
 }
 
+static void CorrectTransfer(void) {
+}
+static void Overrun(void) {
+}
+static void Error(void) {
+}
+static void Wakeup(void) {
+}
+static void Suspend(void) {
+}
+static void Reset(void) {
+}
+static void StartOfFrame(void) {
+}
+static void ExpectedStartOfFrame(void) {
+}
+
+void USB_LP_IRQHandler(void)
+{
+  uint16_t istr = _GetISTR();
+  while(istr & (0xF0)) {
+    if (istr & ISTR_CTR) { CorrectTransfer(); }
+    if (istr & ISTR_DOVR) { Overrun(); }
+    if (istr & ISTR_ERR) { Error(); }
+    if (istr & ISTR_WKUP) { Wakeup(); }
+    if (istr & ISTR_SUSP) { Suspend(); }
+    if (istr & ISTR_RESET) { Reset(); }
+    if (istr & ISTR_SOF) { StartOfFrame(); }
+    if (istr & ISTR_ESOF) { ExpectedStartOfFrame(); }
+  }
+}
