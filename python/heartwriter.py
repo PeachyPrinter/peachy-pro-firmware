@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-import serial
+# Write out the raw data for drawing a heart over and over. Goal is to "cat heart.bin > /dev/ttyACM0" to stress
+# the USB bus as hard as possible
+
 import move_pb2
 import sys
 import time
 import math
 import numpy
 
-s = serial.Serial(sys.argv[1])
+s = open(sys.argv[1], "wb")
 sent = 0
 start = time.time()
 
