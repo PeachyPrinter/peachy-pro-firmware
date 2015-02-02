@@ -69,6 +69,9 @@ void USB_Start(void) {
   NVIC_InitStructure.NVIC_IRQChannelPriority = 1;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
+
+  /* Turn on the internal pull-up */
+  *BCDR |= BCDR_DPPU;
   
   /* From here on out, everything is going to get handled through the USB Interrupt Handler */
 }
@@ -120,14 +123,20 @@ void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr) {
  */
 
 static void CorrectTransfer(void) {
+  _SetISTR((uint16_t)CLR_CTR);
+
 }
 static void Overrun(void) {
+  _SetISTR((uint16_t)CLR_DOVR);
 }
 static void Error(void) {
+  _SetISTR((uint16_t)CLR_ERR);
 }
 static void Wakeup(void) {
+  _SetISTR((uint16_t)CLR_WKUP);
 }
 static void Suspend(void) {
+  _SetISTR((uint16_t)CLR_SUSP);
 }
 static void Reset(void) {
   /* When we get a USB Reset, we reboot the world */
@@ -135,16 +144,20 @@ static void Reset(void) {
   /* Set up EP0 endpoints */
   EP_Config(0, EP_OUT, EP_CONTROL, EP0_RX_ADDR);
   EP_Config(0, EP_IN, EP_CONTROL, EP0_TX_ADDR);
+
+  _SetISTR((uint16_t)CLR_RESET);
 }
 static void StartOfFrame(void) {
+  _SetISTR((uint16_t)CLR_SOF);
 }
 static void ExpectedStartOfFrame(void) {
+  _SetISTR((uint16_t)CLR_ESOF);
 }
 
 void USB_LP_IRQHandler(void)
 {
-  uint16_t istr = _GetISTR();
-  while(istr & (0xF0)) {
+  volatile uint16_t istr = _GetISTR();
+  while(istr & (0xFF00)) {
     if (istr & ISTR_CTR) { CorrectTransfer(); }
     if (istr & ISTR_DOVR) { Overrun(); }
     if (istr & ISTR_ERR) { Error(); }
