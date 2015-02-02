@@ -133,9 +133,29 @@ static void Error(void) {
   _SetISTR((uint16_t)CLR_ERR);
 }
 static void Wakeup(void) {
+  uint16_t cntr;
+
+  cntr = _GetCNTR();
+  cntr &= (~CNTR_LPMODE);
+  _SetCNTR(cntr);
+
+  cntr = _GetCNTR();
+  cntr &= (~CNTR_FSUSP);
+  _SetCNTR(cntr);
+
   _SetISTR((uint16_t)CLR_WKUP);
 }
 static void Suspend(void) {
+  uint16_t cntr;
+
+  cntr = _GetCNTR();
+  cntr |= CNTR_FSUSP;
+  _SetCNTR(cntr);
+
+  cntr = _GetCNTR();
+  cntr |= CNTR_LPMODE;
+  _SetCNTR(cntr);
+
   _SetISTR((uint16_t)CLR_SUSP);
 }
 static void Reset(void) {
