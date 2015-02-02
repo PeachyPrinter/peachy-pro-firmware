@@ -154,17 +154,28 @@ static void ExpectedStartOfFrame(void) {
   _SetISTR((uint16_t)CLR_ESOF);
 }
 
+uint16_t istrs[256];
+uint16_t istrs_idx = 0;
+uint16_t reset_called = 0;
+
 void USB_LP_IRQHandler(void)
 {
-  volatile uint16_t istr = _GetISTR();
-  while(istr & (0xFF00)) {
+  volatile uint16_t istr;
+
+  do {
+    istr = _GetISTR();
+
+    istrs[istrs_idx] = istr;
+    if (istrs_idx<255) {
+      istrs_idx++;
+    }
     if (istr & ISTR_CTR) { CorrectTransfer(); }
     if (istr & ISTR_DOVR) { Overrun(); }
     if (istr & ISTR_ERR) { Error(); }
     if (istr & ISTR_WKUP) { Wakeup(); }
     if (istr & ISTR_SUSP) { Suspend(); }
-    if (istr & ISTR_RESET) { Reset(); }
+    if (istr & ISTR_RESET) { Reset(); reset_called = 1; }
     if (istr & ISTR_SOF) { StartOfFrame(); }
     if (istr & ISTR_ESOF) { ExpectedStartOfFrame(); }
-  }
+  }   while(istr & (0xFF00));
 }
