@@ -1,0 +1,51 @@
+Packet Memory (PMA)
+
+- 1024 bytes, divided into 512 half-words
+
+- Starts with BTable (block table) which describes which chunks of memory are allocated to each endpoint
+
+For USB Serial, we need:
+
+EP0 - control endpoint, in/out 
+EP1 - interrupt endpoint, in (to host)
+EP2 - bulk endpoint, out (from host)
+EP3 - bulk endpoint, in (to host)
+
+For the peachy, EP2 is going to be receiving way more data than EP3 is going to be sending.
+
+64-byte packets are the max for USB2.0 FS, so we'll need at least that much for each.
+
+
+EP0 in - 64
+EP0 out - 64
+EP1 in - 64
+EP2 out - 64
+EP3 in - 64
+
+= 192 bytes so far
+
+Each BTABLE entry is 4 half words:
+
+ADDRn_TX
+COUNTn_TX
+ADDRn_RX
+COUNTn_RX
+
+And have to be 8-byte boundary aligned (i.e. lower 3 bits of BTABLE address are 0).
+
+Our table is 4 entries long (because EP0 in/out are both specified in the same row):
+
+8*4 = 32 byte table
+
+-> 224 bytes
+
+That should be good enough to start. Can add double buffering or something if we need it later.
+
+Layout:
+
+BTABLE  - 32 bytes - 0x0000 to 0x001f
+EP0 in  - 64 bytes - 0x0020 to 0x005f
+EP0 out - 64 bytes - 0x0060 to 0x009f
+EP1 in  - 64 bytes - 0x00a0 to 0x00df
+EP2 out - 64 bytes - 0x00e0 to 0x011f
+EP3 in  - 64 bytes - 0x0120 to 0x015f

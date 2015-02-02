@@ -55,6 +55,8 @@ definitions and discarding all of the code from ST's USB driver.
 /* Put the BTABLE at the start of the PMA. There's no reason not to. */
 #define BTABLE_ADDRESS (0x000)
 
+#define EP_IN 0
+#define EP_OUT 1
 
 /* Exported macros -----------------------------------------------------------*/
 /* SetCNTR */

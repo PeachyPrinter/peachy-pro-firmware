@@ -6,6 +6,24 @@
 #include <usb_core.h>
 #include <usb_regs.h>
 
+#define PMA_BASE (0x40006000)
+#define EP0_TX_ADDR (PMA_BASE + 0x0020)
+#define EP0_RX_ADDR (PMA_BASE + 0x0060)
+#define EP1_TX_ADDR (PMA_BASE + 0x00a0)
+#define EP2_RX_ADDR (PMA_BASE + 0x00e0)
+#define EP3_TX_ADDR (PMA_BASE + 0x0120)
+
+typedef struct {
+
+} endpoint_t;
+
+typedef struct {
+  endpoint_t in_ep[4];
+  endpoint_t out_ep[4];
+} usb_dev_t;
+
+//static usb_dev_t USB;
+
 static void CRS_Config(void)
 {
   /*Enable CRS Clock*/
@@ -55,6 +73,52 @@ void USB_Start(void) {
   /* From here on out, everything is going to get handled through the USB Interrupt Handler */
 }
 
+/******************************************************************************
+ * Configuration
+ */
+
+void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr) {
+  /* PMA Table Entry */
+  uint16_t* btable_entry = BTABLE_ADDRESS;
+  btable_entry += ep * 4; /* four half-words per btable entry */
+
+  if (dir == EP_IN) {  /* for IN endpoints, we TX data to the host */
+    btable_entry[0] = addr - PMA_BASE;  /* USB_ADDRn_TX */
+    btable_entry[1] = 0; /* USB_COUNTn_TX */
+  } else {
+    btable_entry[2] = addr - PMA_BASE; /* USB_ADDRn_RX */
+    /* 64-byte clock size = 
+       BL_SIZE = 1 ->   1xxx xxxx xxxx xxxx (BL_SIZE=1 -> num_blocks is 32-byte increments, with 0 = 32byte)
+       NUM_BLOCK = 1 ->  000 01
+       Total ->         1000 0100 0000 0000 = 0x8400
+    */
+    btable_entry[3] = 0x8400;
+  }
+
+/* USB_EPnR register */
+  _SetEPType(ep, type);
+
+  _ClearDTOG_RX(ep);
+  _ClearDTOG_TX(ep);
+  
+  if (dir == EP_OUT) {
+    _SetEPRxAddr(ep, addr);
+    _ToggleDTOG_RX(ep);
+  } else if (dir == EP_IN) {
+    _SetEPTxAddr(ep, addr);
+    _ToggleDTOG_TX(ep);
+  }
+  
+  _SetEPTxStatus(ep, EP_TX_DIS);
+  _SetEPRxStatus(ep, EP_RX_DIS);
+
+  _ClearEP_KIND(ep); /* not doing any double buffering, so just clear it */
+}
+
+/******************************************************************************
+ * Interrupt handlers
+ */
+
 static void CorrectTransfer(void) {
 }
 static void Overrun(void) {
@@ -66,6 +130,11 @@ static void Wakeup(void) {
 static void Suspend(void) {
 }
 static void Reset(void) {
+  /* When we get a USB Reset, we reboot the world */
+
+  /* Set up EP0 endpoints */
+  EP_Config(0, EP_OUT, EP_CONTROL, EP0_RX_ADDR);
+  EP_Config(0, EP_IN, EP_CONTROL, EP0_TX_ADDR);
 }
 static void StartOfFrame(void) {
 }

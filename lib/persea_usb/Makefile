@@ -9,7 +9,7 @@ SRCS = usb_core.c
 
 vpath %.c src
 
-CFLAGS  = -g -O2 -Wall
+CFLAGS  = -g -O2 -Wall -Werror
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m0 -march=armv6s-m
 CFLAGS += -ffreestanding -nostdlib
 CFLAGS += -I./inc -I../cmsis_boot -I../cmsis_core -I../cmsis_lib/include
