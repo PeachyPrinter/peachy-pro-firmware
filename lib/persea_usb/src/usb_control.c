@@ -167,10 +167,10 @@ static void HandleSetupPacket(usb_dev_t* usb) {
   _SetEPRxStatus(0, EP_RX_VALID);
 }
 
-/*static void ChangeAddress(usb_dev_t* usb) {
+static void ChangeAddress(usb_dev_t* usb) {
   _SetDADDR(usb->address | DADDR_EF);
   usb->state = ADDRESS;
-  }*/
+}
 
 static void HandleControlPacket() {
   _SetEPRxStatus(0, EP_RX_VALID);
@@ -181,9 +181,9 @@ void HandleEP0(usb_dev_t* usb) {
 
   if ((istr & ISTR_DIR) == 0) {
     /* This is an IN endpoint. Our transmission worked! */
-    //if (usb->state == CHANGE_ADDRESS) {
-    //  ChangeAddress(usb);
-    //}
+    if (usb->state == CHANGE_ADDRESS) {
+      ChangeAddress(usb);
+    }
     _ClearEP_CTR_TX(0);
   } else {
     /* This is an OUT endpoint. We've got data waiting for us. */
