@@ -182,9 +182,7 @@ void USB_LP_IRQHandler(void)
 {
   volatile uint16_t istr;
 
-  do {
-    istr = _GetISTR();
-
+  while((istr = _GetISTR()) & (0xFF00)) {
     istrs[istrs_idx] = istr;
     if (istrs_idx<255) {
       istrs_idx++;
@@ -197,5 +195,5 @@ void USB_LP_IRQHandler(void)
     if (istr & ISTR_RESET) { Reset(); reset_called = 1; }
     if (istr & ISTR_SOF) { StartOfFrame(); }
     if (istr & ISTR_ESOF) { ExpectedStartOfFrame(); }
-  }   while(istr & (0xFF00));
+  }
 }
