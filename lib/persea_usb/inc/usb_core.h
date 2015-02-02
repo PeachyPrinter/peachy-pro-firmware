@@ -38,6 +38,13 @@ definitions and discarding all of the code from ST's USB driver.
 #include "usb_regs.h"
 
 /* Exported defines ----------------------------------------------------------*/
+#define PMA_BASE (0x40006000)
+#define EP0_TX_ADDR (0x0020)
+#define EP0_RX_ADDR (0x0060)
+#define EP1_TX_ADDR (0x00a0)
+#define EP2_RX_ADDR (0x00e0)
+#define EP3_TX_ADDR (0x0120)
+
 #define EP_TYPE_CTRL                           0
 
 #define USB_EP0_IDLE                          0
@@ -58,7 +65,32 @@ definitions and discarding all of the code from ST's USB driver.
 #define EP_IN 0
 #define EP_OUT 1
 
+/* USB Device Requests */
+
+#define REQUEST_TYPE_MASK (0x60)
+#define REQUEST_TYPE_STD (0x00)
+#define REQUEST_TYPE_CLASS (0x20)
+#define REQUEST_TYPE_VENDOR (0x40)
+
+#define REQ_GET_CONFIGURATION (0x80)
+
+#define REQ_GET_DESCRIPTOR (0x06)
+
+#define DESC_DEVICE 1
+#define DESC_CONFIGURATION 2
+#define DESC_STRING 3
+#define DESC_INTERFACE 4
+#define DESC_ENDPOINT 5
+#define DESC_DEVICE_QUALIFIER 6
+#define DESC_OTHER_SPEED 7
+#define DESC_INTERFACE_POWER 8
+
 /* Exported macros -----------------------------------------------------------*/
+#define  SWAPBYTE(addr)        (((uint16_t)(*((uint8_t *)(addr)))) + \
+                               (((uint16_t)(*(((uint8_t *)(addr)) + 1))) << 8))
+#define LOBYTE(x)  ((uint8_t)(x & 0x00FF))
+#define HIBYTE(x)  ((uint8_t)((x & 0xFF00) >>8))
+
 /* SetCNTR */
 #define _SetCNTR(wRegValue)  (*CNTR   = (uint16_t)wRegValue)
 
@@ -432,7 +464,7 @@ extern __IO uint16_t wIstr;  /* ISTR register last read value */
 
 void USB_Start(void);
 
-void UserToPMABufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes);
+void UserToPMABufferCopy(const uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes);
 void PMAToUserBufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes);
 
 #endif /* __USB_CORE_H__ */

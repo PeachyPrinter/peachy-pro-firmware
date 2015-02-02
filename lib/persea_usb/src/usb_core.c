@@ -5,13 +5,7 @@
 
 #include <usb_core.h>
 #include <usb_regs.h>
-
-#define PMA_BASE (0x40006000)
-#define EP0_TX_ADDR (PMA_BASE + 0x0020)
-#define EP0_RX_ADDR (PMA_BASE + 0x0060)
-#define EP1_TX_ADDR (PMA_BASE + 0x00a0)
-#define EP2_RX_ADDR (PMA_BASE + 0x00e0)
-#define EP3_TX_ADDR (PMA_BASE + 0x0120)
+#include <usb_control.h>
 
 typedef struct {
 
@@ -86,10 +80,10 @@ void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr) {
   btable_entry += ep * 4; /* four half-words per btable entry */
 
   if (dir == EP_IN) {  /* for IN endpoints, we TX data to the host */
-    btable_entry[0] = addr - PMA_BASE;  /* USB_ADDRn_TX */
+    btable_entry[0] = addr;  /* USB_ADDRn_TX */
     btable_entry[1] = 0; /* USB_COUNTn_TX */
   } else {
-    btable_entry[2] = addr - PMA_BASE; /* USB_ADDRn_RX */
+    btable_entry[2] = addr; /* USB_ADDRn_RX */
     /* 64-byte clock size = 
        BL_SIZE = 1 ->   1xxx xxxx xxxx xxxx (BL_SIZE=1 -> num_blocks is 32-byte increments, with 0 = 32byte)
        NUM_BLOCK = 1 ->  000 01
@@ -121,8 +115,17 @@ void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr) {
  */
 
 static void CorrectTransfer(void) {
-  _SetISTR((uint16_t)CLR_CTR);
+  uint16_t istr;
+  uint8_t epIndex;
 
+  istr = _GetISTR();
+  epIndex = (uint8_t)(istr & ISTR_EP_ID);
+
+  if (epIndex == 0) {
+    HandleEP0();
+  }
+
+  _SetISTR((uint16_t)CLR_CTR);
 }
 static void Overrun(void) {
   _SetISTR((uint16_t)CLR_DOVR);
@@ -201,5 +204,54 @@ void USB_LP_IRQHandler(void)
     if (istr & ISTR_RESET) { Reset(); reset_called = 1; }
     if (istr & ISTR_SOF) { StartOfFrame(); }
     if (istr & ISTR_ESOF) { ExpectedStartOfFrame(); }
+  }
+}
+
+/**********************************************************************
+ * USB Buffer Copying
+ */
+
+/**
+  * @brief Copy a buffer from user memory area to packet memory area (PMA)
+  * @param   pbUsrBuf: pointer to user memory area.
+  * @param   wPMABufAddr: address into PMA.
+  * @param   wNBytes: no. of bytes to be copied.
+  * @retval None
+  */
+void UserToPMABufferCopy(const uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes)
+{
+  uint32_t n = (wNBytes + 1) >> 1; 
+  uint32_t i;
+  uint16_t temp1, temp2;
+  uint16_t *pdwVal;
+  pdwVal = (uint16_t *)(wPMABufAddr + PMAAddr);
+  
+  for (i = n; i != 0; i--)
+  {
+    temp1 = (uint16_t) * pbUsrBuf;
+    pbUsrBuf++;
+    temp2 = temp1 | (uint16_t) * pbUsrBuf << 8;
+    *pdwVal++ = temp2;
+    pbUsrBuf++;
+  }
+}
+
+/**
+  * @brief Copy a buffer from user memory area to packet memory area (PMA)
+  * @param   pbUsrBuf    = pointer to user memory area.
+  * @param   wPMABufAddr: address into PMA.
+  * @param   wNBytes: no. of bytes to be copied.
+  * @retval None
+  */
+void PMAToUserBufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes)
+{
+  uint32_t n = (wNBytes + 1) >> 1;
+  uint32_t i;
+  uint16_t *pdwVal;
+  pdwVal = (uint16_t *)(wPMABufAddr + PMAAddr);
+  for (i = n; i != 0; i--)
+  {
+    *(uint16_t*)pbUsrBuf++ = *pdwVal++;
+    pbUsrBuf++;
   }
 }
