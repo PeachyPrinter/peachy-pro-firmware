@@ -7,16 +7,7 @@
 #include <usb_regs.h>
 #include <usb_control.h>
 
-typedef struct {
-
-} endpoint_t;
-
-typedef struct {
-  endpoint_t in_ep[4];
-  endpoint_t out_ep[4];
-} usb_dev_t;
-
-//static usb_dev_t USB;
+static usb_dev_t USB;
 
 static void CRS_Config(void)
 {
@@ -122,7 +113,7 @@ static void CorrectTransfer(void) {
   epIndex = (uint8_t)(istr & ISTR_EP_ID);
 
   if (epIndex == 0) {
-    HandleEP0();
+    HandleEP0(&USB);
   }
 
   _SetISTR((uint16_t)CLR_CTR);
@@ -173,6 +164,9 @@ static void Reset(void) {
 
   _SetEPAddress(0, 0);
   _SetDADDR(0 | DADDR_EF);
+
+  USB.address = 0;
+  USB.state = DEFAULT;
 
   _SetISTR((uint16_t)CLR_RESET);
 }

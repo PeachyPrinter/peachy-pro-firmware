@@ -37,6 +37,21 @@ definitions and discarding all of the code from ST's USB driver.
 /* Includes ------------------------------------------------------------------*/
 #include "usb_regs.h"
 
+/* Data Structures -----------------------------------------------------------*/
+typedef struct {
+
+} endpoint_t;
+
+typedef enum { DEFAULT = 0, CHANGE_ADDRESS, ADDRESS, CONFIGURED } usb_state_t;
+
+typedef struct {
+  endpoint_t in_ep[4];
+  endpoint_t out_ep[4];
+  usb_state_t state;
+  uint8_t address;
+} usb_dev_t;
+
+
 /* Exported defines ----------------------------------------------------------*/
 #define PMA_BASE (0x40006000)
 #define EP0_TX_ADDR (0x0020)

@@ -60,10 +60,14 @@ static const uint8_t DeviceQualifier[USB_LEN_DEV_QUALIFIER_DESC] =
 /**********************************************************************
  * Control Request Handers 
  */
-void WriteEP0(const uint8_t* buf, uint8_t size) {
+void WriteEP0Ctrl(const uint8_t* buf, uint8_t size) {
   if (size) {
     UserToPMABufferCopy(buf, EP0_TX_ADDR, size);
   }
+  // Use DTOG = 1 for transmitting all EP0 Ctrl packets
+  _ClearDTOG_TX(0);
+  _ToggleDTOG_TX(0);
+
   _SetEPTxCount(0, size);
   _SetEPTxStatus(0, EP_TX_VALID);
 }
@@ -90,16 +94,24 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
     break;
   }
   if (to_send_size) {
-    WriteEP0(to_send, to_send_size);
+    WriteEP0Ctrl(to_send, to_send_size);
   }
 }
 
-static void HandleSetAddress(usb_setup_req_t* setup, uint8_t* rx_buffer) {
-  WriteEP0(0, 0);
+static void HandleSetAddress(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  WriteEP0Ctrl(0, 0);
+  usb->state = CHANGE_ADDRESS;
+  usb->address = setup->wValue & 0x7F;
+
 //  _SetDADDR((setup->wValue & 0x7F) | DADDR_EF);
 }
 
-static void HandleStandardRequest(usb_setup_req_t* setup, uint8_t* rx_buffer) {
+static void DoNothingFunction() {
+  int i = 0;
+  for(i = 0; i < 100; i++) ;
+}
+
+static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   switch(setup->bmRequestType) {
   case REQ_GET_CONFIGURATION:
     switch(setup->bRequest) {
@@ -107,9 +119,11 @@ static void HandleStandardRequest(usb_setup_req_t* setup, uint8_t* rx_buffer) {
       HandleGetDescriptor(setup, rx_buffer);
       break;
     case REQ_SET_ADDRESS:
-      HandleSetAddress(setup, rx_buffer);
+      HandleSetAddress(usb, setup, rx_buffer);
       break;
-    default: break;
+    default: 
+      DoNothingFunction();
+      break;
     }
     break;
   default:
@@ -117,7 +131,7 @@ static void HandleStandardRequest(usb_setup_req_t* setup, uint8_t* rx_buffer) {
   }
 }
 
-static void HandleSetupPacket() {
+static void HandleSetupPacket(usb_dev_t* usb) {
   uint8_t rx_buffer[64];
   usb_setup_req_t setup;
 
@@ -133,7 +147,7 @@ static void HandleSetupPacket() {
 
   switch(setup.bmRequestType & REQUEST_TYPE_MASK) {
   case REQUEST_TYPE_STD:
-    HandleStandardRequest(&setup, rx_buffer);
+    HandleStandardRequest(usb, &setup, rx_buffer);
     break;
   default:
     break;
@@ -143,20 +157,28 @@ static void HandleSetupPacket() {
   _SetEPRxStatus(0, EP_RX_VALID);
 }
 
-static void HandleControlPacket() {
-
+static void ChangeAddress(usb_dev_t* usb) {
+  _SetDADDR(usb->address | DADDR_EF);
+  usb->state = ADDRESS;
 }
 
-void HandleEP0(void) {
+static void HandleControlPacket() {
+  _SetEPRxStatus(0, EP_RX_VALID);
+}
+
+void HandleEP0(usb_dev_t* usb) {
   uint16_t istr = _GetISTR();
 
   if ((istr & ISTR_DIR) == 0) {
     /* This is an IN endpoint. Our transmission worked! */
+    if (usb->state == CHANGE_ADDRESS) {
+      ChangeAddress(usb);
+    }
     _ClearEP_CTR_TX(0);
   } else {
     /* This is an OUT endpoint. We've got data waiting for us. */
     if (_GetENDPOINT(0) & EP_SETUP) {
-      HandleSetupPacket();
+      HandleSetupPacket(usb);
     } else {
       HandleControlPacket();
     }
