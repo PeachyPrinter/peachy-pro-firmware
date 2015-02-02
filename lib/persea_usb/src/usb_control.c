@@ -64,14 +64,19 @@ void WriteEP0Ctrl(const uint8_t* buf, uint8_t size) {
   if (size) {
     UserToPMABufferCopy(buf, EP0_TX_ADDR, size);
   }
-  // Use DTOG = 1 for transmitting all EP0 Ctrl packets
-  _ClearDTOG_TX(0);
-  _ToggleDTOG_TX(0);
 
   _SetEPTxCount(0, size);
   _SetEPTxStatus(0, EP_TX_VALID);
 }
 
+void WriteEP0Status(void) {
+  // Use DTOG = 1 for transmitting all EP0 Status packets
+  _ClearDTOG_TX(0);
+  _ToggleDTOG_TX(0);
+
+  _SetEPTxCount(0, 0);
+  _SetEPTxStatus(0, EP_TX_VALID);
+}
 volatile usb_setup_req_t last_setup;
 
 static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
@@ -99,25 +104,29 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
 }
 
 static void HandleSetAddress(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
-  WriteEP0Ctrl(0, 0);
+  WriteEP0Status();
+
   usb->state = CHANGE_ADDRESS;
   usb->address = setup->wValue & 0x7F;
 
 //  _SetDADDR((setup->wValue & 0x7F) | DADDR_EF);
 }
 
-static void DoNothingFunction() {
-  int i = 0;
+void DoNothingFunction() {
+  volatile int i = 0;
   for(i = 0; i < 100; i++) ;
 }
 
 static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   switch(setup->bmRequestType) {
-  case REQ_GET_CONFIGURATION:
+  case REQ_GET:
     switch(setup->bRequest) {
     case REQ_GET_DESCRIPTOR:
       HandleGetDescriptor(setup, rx_buffer);
       break;
+    }
+  case REQ_SET:
+    switch(setup->bRequest) {
     case REQ_SET_ADDRESS:
       HandleSetAddress(usb, setup, rx_buffer);
       break;
@@ -150,6 +159,7 @@ static void HandleSetupPacket(usb_dev_t* usb) {
     HandleStandardRequest(usb, &setup, rx_buffer);
     break;
   default:
+    DoNothingFunction();
     break;
   }
 
@@ -157,10 +167,10 @@ static void HandleSetupPacket(usb_dev_t* usb) {
   _SetEPRxStatus(0, EP_RX_VALID);
 }
 
-static void ChangeAddress(usb_dev_t* usb) {
+/*static void ChangeAddress(usb_dev_t* usb) {
   _SetDADDR(usb->address | DADDR_EF);
   usb->state = ADDRESS;
-}
+  }*/
 
 static void HandleControlPacket() {
   _SetEPRxStatus(0, EP_RX_VALID);
@@ -171,9 +181,9 @@ void HandleEP0(usb_dev_t* usb) {
 
   if ((istr & ISTR_DIR) == 0) {
     /* This is an IN endpoint. Our transmission worked! */
-    if (usb->state == CHANGE_ADDRESS) {
-      ChangeAddress(usb);
-    }
+    //if (usb->state == CHANGE_ADDRESS) {
+    //  ChangeAddress(usb);
+    //}
     _ClearEP_CTR_TX(0);
   } else {
     /* This is an OUT endpoint. We've got data waiting for us. */

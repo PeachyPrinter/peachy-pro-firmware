@@ -87,7 +87,8 @@ typedef struct {
 #define REQUEST_TYPE_CLASS (0x20)
 #define REQUEST_TYPE_VENDOR (0x40)
 
-#define REQ_GET_CONFIGURATION (0x80)
+#define REQ_GET (0x80)
+#define REQ_SET (0x00)
 
 #define REQ_GET_DESCRIPTOR (0x06)
 #define REQ_SET_ADDRESS (0x05)
