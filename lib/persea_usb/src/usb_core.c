@@ -165,6 +165,11 @@ static void Reset(void) {
 
   /* Arm EP0 out so we can receive our first setup packet */
   _SetEPRxStatus(0, EP_RX_VALID);
+  /* And set EP0 in to NAK */
+  _SetEPTxStatus(0, EP_TX_NAK);
+
+  _SetEPAddress(0, 0);
+  _SetDADDR(0 | DADDR_EF);
 
   _SetISTR((uint16_t)CLR_RESET);
 }
@@ -175,7 +180,7 @@ static void ExpectedStartOfFrame(void) {
   _SetISTR((uint16_t)CLR_ESOF);
 }
 
-uint16_t istrs[256];
+uint16_t istrs[512];
 uint16_t istrs_idx = 0;
 uint16_t reset_called = 0;
 
@@ -185,7 +190,7 @@ void USB_LP_IRQHandler(void)
 
   while((istr = _GetISTR()) & (0xFF00)) {
     istrs[istrs_idx] = istr;
-    if (istrs_idx<255) {
+    if (istrs_idx<512) {
       istrs_idx++;
     }
     if (istr & ISTR_CTR) { CorrectTransfer(); }
