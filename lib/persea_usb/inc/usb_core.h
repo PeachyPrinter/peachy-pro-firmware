@@ -75,6 +75,7 @@ definitions and discarding all of the code from ST's USB driver.
 #define REQ_GET_CONFIGURATION (0x80)
 
 #define REQ_GET_DESCRIPTOR (0x06)
+#define REQ_SET_ADDRESS (0x05)
 
 #define DESC_DEVICE 1
 #define DESC_CONFIGURATION 2

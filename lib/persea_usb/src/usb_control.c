@@ -61,7 +61,9 @@ static const uint8_t DeviceQualifier[USB_LEN_DEV_QUALIFIER_DESC] =
  * Control Request Handers 
  */
 void WriteEP0(const uint8_t* buf, uint8_t size) {
-  UserToPMABufferCopy(buf, EP0_TX_ADDR, size);
+  if (size) {
+    UserToPMABufferCopy(buf, EP0_TX_ADDR, size);
+  }
   _SetEPTxCount(0, size);
   _SetEPTxStatus(0, EP_TX_VALID);
 }
@@ -91,12 +93,21 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
     WriteEP0(to_send, to_send_size);
   }
 }
+
+static void HandleSetAddress(usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  WriteEP0(0, 0);
+//  _SetDADDR((setup->wValue & 0x7F) | DADDR_EF);
+}
+
 static void HandleStandardRequest(usb_setup_req_t* setup, uint8_t* rx_buffer) {
   switch(setup->bmRequestType) {
   case REQ_GET_CONFIGURATION:
     switch(setup->bRequest) {
     case REQ_GET_DESCRIPTOR:
       HandleGetDescriptor(setup, rx_buffer);
+      break;
+    case REQ_SET_ADDRESS:
+      HandleSetAddress(setup, rx_buffer);
       break;
     default: break;
     }
@@ -127,6 +138,9 @@ static void HandleSetupPacket() {
   default:
     break;
   }
+
+  /* Rearm the RX (EP0 OUT) endpoint */
+  _SetEPRxStatus(0, EP_RX_VALID);
 }
 
 static void HandleControlPacket() {
