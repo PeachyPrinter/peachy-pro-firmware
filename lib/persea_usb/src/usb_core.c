@@ -60,7 +60,7 @@ void USB_Start(void) {
   _SetBTABLE(BTABLE_ADDRESS);
 
   /* Set interrupt mask */
-  _SetCNTR(CNTR_CTRM | CNTR_WKUPM | CNTR_SUSPM | CNTR_ERRM | CNTR_SOFM | CNTR_ESOFM | CNTR_RESETM);
+  _SetCNTR(CNTR_CTRM | CNTR_DOVRM | CNTR_WKUPM | CNTR_SUSPM | CNTR_ERRM | CNTR_SOFM | CNTR_ESOFM | CNTR_RESETM);
 
   /* Connect the interrupts from the USB macrocell to the NVIC */
   NVIC_InitTypeDef NVIC_InitStructure;
@@ -72,7 +72,7 @@ void USB_Start(void) {
 
   /* Turn on the internal pull-up */
   *BCDR |= BCDR_DPPU;
-  
+
   /* From here on out, everything is going to get handled through the USB Interrupt Handler */
 }
 
@@ -82,7 +82,7 @@ void USB_Start(void) {
 
 void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr) {
   /* PMA Table Entry */
-  uint16_t* btable_entry = BTABLE_ADDRESS;
+  uint16_t* btable_entry = (uint16_t*)(PMA_BASE + BTABLE_ADDRESS);
   btable_entry += ep * 4; /* four half-words per btable entry */
 
   if (dir == EP_IN) {  /* for IN endpoints, we TX data to the host */
@@ -105,10 +105,8 @@ void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr) {
   _ClearDTOG_TX(ep);
   
   if (dir == EP_OUT) {
-    _SetEPRxAddr(ep, addr);
     _ToggleDTOG_RX(ep);
   } else if (dir == EP_IN) {
-    _SetEPTxAddr(ep, addr);
     _ToggleDTOG_TX(ep);
   }
   
@@ -164,6 +162,9 @@ static void Reset(void) {
   /* Set up EP0 endpoints */
   EP_Config(0, EP_OUT, EP_CONTROL, EP0_RX_ADDR);
   EP_Config(0, EP_IN, EP_CONTROL, EP0_TX_ADDR);
+
+  /* Arm EP0 out so we can receive our first setup packet */
+  _SetEPRxStatus(0, EP_RX_VALID);
 
   _SetISTR((uint16_t)CLR_RESET);
 }
