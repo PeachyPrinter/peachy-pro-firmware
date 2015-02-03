@@ -13,6 +13,14 @@ typedef struct {
   uint16_t wLength;
 } usb_setup_req_t;
 
+typedef struct {
+  const uint8_t* buf;
+  uint16_t count;
+  uint8_t send_zlp;
+} outgoing_data_t;
+
+static outgoing_data_t ep0_output;
+
 /**********************************************************************
  * Descriptors
  */
@@ -191,11 +199,20 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
     to_send = DeviceDescriptor;
     to_send_size = sizeof(DeviceDescriptor);
     break;
+  case DESC_CONFIGURATION:
+    to_send = CdcConfig;
+    to_send_size = sizeof(CdcConfig);
   default:
     break;
   }
+
   if (to_send_size) {
-    WriteEP0Ctrl(to_send, to_send_size);
+    if (to_send_size > setup->wLength) {
+      to_send_size = setup->wLength;
+    }
+    ep0_output.buf = to_send;
+    ep0_output.count = to_send_size;
+    ep0_output.send_zlp = 0;
   }
 }
 
@@ -221,6 +238,9 @@ static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_
       HandleGetDescriptor(setup, rx_buffer);
       break;
     }
+    /* The Status packet is going to be DTOG=1 */
+    _ClearDTOG_RX(0);
+    _ToggleDTOG_RX(0);
   case REQ_SET:
     switch(setup->bRequest) {
     case REQ_SET_ADDRESS:
@@ -272,6 +292,36 @@ static void HandleControlPacket() {
   _SetEPRxStatus(0, EP_RX_VALID);
 }
 
+uint8_t send_sizes[512];
+uint16_t send_size_idx = 0;
+
+static void SendNext() {
+  if(ep0_output.count == 0 && ep0_output.send_zlp == 0) {
+    return;
+  }
+  if (ep0_output.count == 0 && ep0_output.send_zlp) {
+    ep0_output.send_zlp = 0;
+    _SetEPTxCount(0,0);
+    _SetEPTxStatus(0, EP_TX_VALID);
+    return;
+  }
+  if(ep0_output.count < 64) {
+    send_sizes[send_size_idx++] = ep0_output.count;
+    WriteEP0Ctrl(ep0_output.buf, ep0_output.count);
+    ep0_output.count = 0;
+    return;
+  }
+  /* From here on, we know we're doing a multi-part packet */
+  if(ep0_output.count == 64) {
+    ep0_output.send_zlp = 1;
+  }
+  WriteEP0Ctrl(ep0_output.buf, 64);
+  send_sizes[send_size_idx++] = 64;
+  ep0_output.buf += 64;
+  ep0_output.count -= 64;
+  if(send_size_idx > 511) { send_size_idx = 511; }
+}
+
 void HandleEP0(usb_dev_t* usb) {
   uint16_t istr = _GetISTR();
 
@@ -280,6 +330,7 @@ void HandleEP0(usb_dev_t* usb) {
     if (usb->state == CHANGE_ADDRESS) {
       ChangeAddress(usb);
     }
+    SendNext();
     _ClearEP_CTR_TX(0);
   } else {
     /* This is an OUT endpoint. We've got data waiting for us. */
@@ -288,6 +339,7 @@ void HandleEP0(usb_dev_t* usb) {
     } else {
       HandleControlPacket();
     }
+    SendNext();
     _ClearEP_CTR_RX(0);
   }
 }

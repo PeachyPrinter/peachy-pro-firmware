@@ -118,12 +118,15 @@ static void CorrectTransfer(void) {
 
   _SetISTR((uint16_t)CLR_CTR);
 }
+
 static void Overrun(void) {
   _SetISTR((uint16_t)CLR_DOVR);
 }
+
 static void Error(void) {
   _SetISTR((uint16_t)CLR_ERR);
 }
+
 static void Wakeup(void) {
   uint16_t cntr;
 
@@ -137,6 +140,7 @@ static void Wakeup(void) {
 
   _SetISTR((uint16_t)CLR_WKUP);
 }
+
 static void Suspend(void) {
   uint16_t cntr;
 
@@ -150,6 +154,7 @@ static void Suspend(void) {
 
   _SetISTR((uint16_t)CLR_SUSP);
 }
+
 static void Reset(void) {
   /* When we get a USB Reset, we reboot the world */
 
@@ -177,25 +182,18 @@ static void ExpectedStartOfFrame(void) {
   _SetISTR((uint16_t)CLR_ESOF);
 }
 
-uint16_t istrs[512];
-uint16_t istrs_idx = 0;
-uint16_t reset_called = 0;
 
 void USB_LP_IRQHandler(void)
 {
   volatile uint16_t istr;
 
   while((istr = _GetISTR()) & (0xFF00)) {
-    istrs[istrs_idx] = istr;
-    if (istrs_idx<512) {
-      istrs_idx++;
-    }
     if (istr & ISTR_CTR) { CorrectTransfer(); }
     if (istr & ISTR_DOVR) { Overrun(); }
     if (istr & ISTR_ERR) { Error(); }
     if (istr & ISTR_WKUP) { Wakeup(); }
     if (istr & ISTR_SUSP) { Suspend(); }
-    if (istr & ISTR_RESET) { Reset(); reset_called = 1; }
+    if (istr & ISTR_RESET) { Reset(); }
     if (istr & ISTR_SOF) { StartOfFrame(); }
     if (istr & ISTR_ESOF) { ExpectedStartOfFrame(); }
   }
