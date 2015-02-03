@@ -96,6 +96,7 @@ typedef struct {
 
 #define REQ_GET_DESCRIPTOR (0x06)
 #define REQ_SET_ADDRESS (0x05)
+#define REQ_SET_CONFIGURATION (0x09)
 
 /* From Table 9-5 in the USB 2.0 Spec, pdf page 279, doc page 251 */
 #define DESC_DEVICE 1

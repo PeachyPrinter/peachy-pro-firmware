@@ -225,6 +225,11 @@ static void HandleSetAddress(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx
 //  _SetDADDR((setup->wValue & 0x7F) | DADDR_EF);
 }
 
+static void HandleSetConfiguration(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  WriteEP0Status();
+  usb->state = CONFIGURED;
+}
+
 void DoNothingFunction() {
   volatile int i = 0;
   for(i = 0; i < 100; i++) ;
@@ -245,6 +250,9 @@ static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_
     switch(setup->bRequest) {
     case REQ_SET_ADDRESS:
       HandleSetAddress(usb, setup, rx_buffer);
+      break;
+    case REQ_SET_CONFIGURATION:
+      HandleSetConfiguration(usb, setup, rx_buffer);
       break;
     default: 
       DoNothingFunction();
