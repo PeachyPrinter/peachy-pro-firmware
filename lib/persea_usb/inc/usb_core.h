@@ -487,6 +487,8 @@ extern __IO uint16_t wIstr;  /* ISTR register last read value */
 
 void USB_Start(void);
 
+void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr);
+
 void UserToPMABufferCopy(const uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes);
 void PMAToUserBufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes);
 

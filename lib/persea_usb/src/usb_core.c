@@ -6,6 +6,7 @@
 #include <usb_core.h>
 #include <usb_regs.h>
 #include <usb_control.h>
+#include <usb_cdc.h>
 
 static usb_dev_t USB;
 
@@ -114,6 +115,8 @@ static void CorrectTransfer(void) {
 
   if (epIndex == 0) {
     HandleEP0(&USB);
+  } else {
+    HandleCDC(&USB, epIndex);
   }
 
   _SetISTR((uint16_t)CLR_CTR);

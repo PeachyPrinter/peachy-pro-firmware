@@ -3,7 +3,7 @@ AR=arm-none-eabi-ar
 
 LIBNAME = libpersea-usb.a
 
-SRCS = usb_core.c usb_control.c
+SRCS = usb_core.c usb_control.c usb_cdc.c
 
 ########################################
 
