@@ -60,6 +60,10 @@ typedef struct {
 #define EP2_RX_ADDR (0x00e0)
 #define EP3_TX_ADDR (0x0120)
 
+#define CDC_CMD_EP 0x81
+#define CDC_OUT_EP 0x02
+#define CDC_IN_EP 0x83
+
 #define EP_TYPE_CTRL                           0
 
 #define USB_EP0_IDLE                          0
@@ -93,6 +97,7 @@ typedef struct {
 #define REQ_GET_DESCRIPTOR (0x06)
 #define REQ_SET_ADDRESS (0x05)
 
+/* From Table 9-5 in the USB 2.0 Spec, pdf page 279, doc page 251 */
 #define DESC_DEVICE 1
 #define DESC_CONFIGURATION 2
 #define DESC_STRING 3
