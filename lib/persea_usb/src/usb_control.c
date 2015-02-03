@@ -236,7 +236,7 @@ void DoNothingFunction() {
 }
 
 static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
-  switch(setup->bmRequestType) {
+  switch(setup->bmRequestType & 0x80) {
   case REQ_GET:
     switch(setup->bRequest) {
     case REQ_GET_DESCRIPTOR:
@@ -264,6 +264,20 @@ static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_
   }
 }
 
+static void HandleClassRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  /* can we get away with just ignoring everything? */
+  switch(setup->bmRequestType & 0x80) {
+  case REQ_GET:
+    /* get ready for a status packet */
+    _ClearDTOG_RX(0);
+    _ToggleDTOG_RX(0);
+    break;
+  case REQ_SET:
+    WriteEP0Status();
+    break;
+  }
+}
+
 static void HandleSetupPacket(usb_dev_t* usb) {
   uint8_t rx_buffer[64];
   usb_setup_req_t setup;
@@ -282,6 +296,8 @@ static void HandleSetupPacket(usb_dev_t* usb) {
   case REQUEST_TYPE_STD:
     HandleStandardRequest(usb, &setup, rx_buffer);
     break;
+  case REQUEST_TYPE_CLASS:
+    HandleClassRequest(usb, &setup, rx_buffer);
   default:
     DoNothingFunction();
     break;
