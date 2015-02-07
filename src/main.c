@@ -7,6 +7,7 @@
 #include "pwmout.h"
 
 #include <usb_core.h>
+#include <usb_cdc.h>
 
 void SysTick_Handler(void) {
   update_pwm();
@@ -31,8 +32,9 @@ int main(void)
   initialize_pwm();
   
 //  SysTick_Config(SystemCoreClock / 2000);
-  
+  char* buf = "Hello\n";
   while(1) {
-    serialio_feed();
+    //QueueTx(buf, 6);
+    //serialio_feed();
   }
 }

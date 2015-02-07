@@ -277,13 +277,22 @@ static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_
   }
 }
 
+static void HandleClassGetRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  ep0_output.count = 0;
+  ep0_output.buf = 0;
+  ep0_output.send_zlp = 1;
+
+  /* get ready for a status packet */
+  _ClearDTOG_RX(0);
+  _ToggleDTOG_RX(0);
+}
+
+
 static void HandleClassRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   /* can we get away with just ignoring everything? */
   switch(setup->bmRequestType & 0x80) {
   case REQ_GET:
-    /* get ready for a status packet */
-    _ClearDTOG_RX(0);
-    _ToggleDTOG_RX(0);
+    HandleClassGetRequest(usb, setup, rx_buffer);
     break;
   case REQ_SET:
     WriteEP0Status();
@@ -311,6 +320,7 @@ static void HandleSetupPacket(usb_dev_t* usb) {
     break;
   case REQUEST_TYPE_CLASS:
     HandleClassRequest(usb, &setup, rx_buffer);
+    break;
   default:
     DoNothingFunction();
     break;
@@ -332,7 +342,7 @@ static void HandleControlPacket() {
 uint8_t send_sizes[512];
 uint16_t send_size_idx = 0;
 
-static void SendNext() {
+static void SendNextEP0() {
   if(ep0_output.count == 0 && ep0_output.send_zlp == 0) {
     return;
   }
@@ -367,7 +377,10 @@ void HandleEP0(usb_dev_t* usb) {
     if (usb->state == CHANGE_ADDRESS) {
       ChangeAddress(usb);
     }
-    SendNext();
+    
+    if((istr & ISTR_EP_ID) == 0) {
+      SendNextEP0();
+    }
     _ClearEP_CTR_TX(0);
   } else {
     /* This is an OUT endpoint. We've got data waiting for us. */
@@ -376,7 +389,7 @@ void HandleEP0(usb_dev_t* usb) {
     } else {
       HandleControlPacket();
     }
-    SendNext();
+    SendNextEP0();
     _ClearEP_CTR_RX(0);
   }
 }

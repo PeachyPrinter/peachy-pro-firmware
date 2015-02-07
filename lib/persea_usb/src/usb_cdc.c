@@ -6,6 +6,23 @@
 #include <usb_control.h>
 #include <usb_cdc.h>
 
+static volatile uint8_t in_ep_busy = 0;
+
+void QueueTx(unsigned char* out, int len) {
+  /* wait for any outbound data to get sent */
+  while(in_ep_busy);
+  in_ep_busy = 1;
+
+  UserToPMABufferCopy(out, EP3_TX_ADDR, len);
+  _SetEPTxCount(3, len);
+  _SetEPTxStatus(3, EP_TX_VALID);  
+}
+
+void HandleTx(void) {
+  _ClearEP_CTR_TX(3);
+  in_ep_busy = 0;
+}
+
 void HandleRX(void) {
   _ClearEP_CTR_RX(2);
   _SetEPRxStatus(2, EP_RX_VALID);
@@ -23,7 +40,7 @@ void HandleCDC(usb_dev_t* usb, uint8_t epIndex) {
     break;
   case 3:
     /* IN endpoint */
-    _ClearEP_CTR_TX(3);
+    HandleTx();
     break;
   }
 }

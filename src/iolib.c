@@ -1,9 +1,5 @@
 #include "iolib.h"
 
-
-int usbrxheadptr=0, usbrxtailptr=0;
-unsigned char usbrxbuffer[64];
-
 // USB putchar function
 void PutChar(unsigned char outchar)
 {
