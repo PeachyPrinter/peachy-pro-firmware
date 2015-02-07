@@ -229,15 +229,19 @@ static void HandleSetConfiguration(usb_dev_t* usb, usb_setup_req_t* setup, uint8
   WriteEP0Status();
   usb->state = CONFIGURED;
 
-  EP_Config(1, EP_OUT, EP_INTERRUPT, EP1_TX_ADDR);
+  EP_Config(0, EP_IN, EP_CONTROL, EP0_RX_ADDR);
+  EP_Config(0, EP_OUT, EP_CONTROL, EP0_TX_ADDR);
+  _SetEPAddress(0, 0);
+
+  EP_Config(1, EP_IN, EP_INTERRUPT, EP1_TX_ADDR);
   _SetEPTxStatus(1, EP_TX_NAK);
   _SetEPAddress(1, 1);
 
-  EP_Config(2, EP_IN, EP_BULK, EP2_RX_ADDR);
+  EP_Config(2, EP_OUT, EP_BULK, EP2_RX_ADDR);
   _SetEPRxStatus(2, EP_RX_VALID);
   _SetEPAddress(2, 2);
 
-  EP_Config(3, EP_OUT, EP_BULK, EP3_TX_ADDR);
+  EP_Config(3, EP_IN, EP_BULK, EP3_TX_ADDR);
   _SetEPTxStatus(1, EP_TX_NAK);
   _SetEPAddress(3, 3);
 
