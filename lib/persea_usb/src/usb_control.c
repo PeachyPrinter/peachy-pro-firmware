@@ -394,10 +394,10 @@ void HandleEP0(usb_dev_t* usb) {
     /* This is an OUT endpoint. We've got data waiting for us. */
     if (_GetENDPOINT(0) & EP_SETUP) {
       HandleSetupPacket(usb);
-      SendNextEP0();
     } else {
       HandleControlPacket();
     }
+    SendNextEP0();
     _ClearEP_CTR_RX(0);
   }
 }
