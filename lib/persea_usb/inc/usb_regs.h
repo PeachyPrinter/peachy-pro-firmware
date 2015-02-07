@@ -224,6 +224,7 @@ enum EP_BUF_NUM
 #define EP_RX_STALL    (0x1000) /* EndPoint RX STALLed */
 #define EP_RX_NAK      (0x2000) /* EndPoint RX NAKed */
 #define EP_RX_VALID    (0x3000) /* EndPoint RX VALID */
+#define EP_RX_MASK     (0x3000) /* Mask for EP RX Status */
 #define EPRX_DTOG1     (0x1000) /* EndPoint RX Data TOGgle bit1 */
 #define EPRX_DTOG2     (0x2000) /* EndPoint RX Data TOGgle bit1 */
 #define EPRX_DTOGMASK  (EPRX_STAT|EPREG_MASK)

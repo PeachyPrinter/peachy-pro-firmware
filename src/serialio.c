@@ -2,6 +2,8 @@
 #include "iolib.h"
 #include "pb_decode.h"
 #include "move.pb.h"
+#include <usb_cdc.h>
+
 /**
  * Serial protocol
  *
@@ -28,9 +30,9 @@ extern volatile int g_yout;
 #define FOOTER 0x41
 #define ESCAPE_CHAR 0x42
 
-void handle_move(char* buffer, int len);
-void handle_nack(char* buffer, int len);
-void handle_ack(char* buffer, int len);
+void handle_move(unsigned char* buffer, int len);
+void handle_nack(unsigned char* buffer, int len);
+void handle_ack(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
@@ -39,7 +41,7 @@ static type_callback_map_t callbacks[] = {
   { 0, 0 }
 };
 
-serial_state_t serial_searching(uint8_t* idx, char* buffer, char input) {
+serial_state_t serial_searching(uint8_t* idx, unsigned char* buffer, unsigned char input) {
   if(input != HEADER) {
     return SEARCHING;
   }
@@ -48,7 +50,7 @@ serial_state_t serial_searching(uint8_t* idx, char* buffer, char input) {
   return READING;
 }
 
-serial_state_t serial_reading(uint8_t* idx, char* buffer, char input) {
+serial_state_t serial_reading(uint8_t* idx, unsigned char* buffer, unsigned char input) {
   if(input == ESCAPE_CHAR) {
     return READING_ESCAPED;
   }
@@ -60,13 +62,13 @@ serial_state_t serial_reading(uint8_t* idx, char* buffer, char input) {
   return READING;
 }
 
-serial_state_t serial_reading_esc(uint8_t* idx, char* buffer, char input) {
+serial_state_t serial_reading_esc(uint8_t* idx, unsigned char* buffer, unsigned char input) {
   buffer[*idx] = ~input;
   (*idx) += 1;
   return READING;
 }
 
-serial_state_t serial_done(uint8_t* idx, char* buffer) {
+serial_state_t serial_done(uint8_t* idx, unsigned char* buffer) {
   type_callback_map_t* cur = callbacks;
   while(cur->callback != 0) {
     if (cur->message_type == buffer[0]) {
@@ -80,22 +82,26 @@ serial_state_t serial_done(uint8_t* idx, char* buffer) {
 }
 
 void serialio_feed() {
-  static char buffer[32] = {0};
-  static uint8_t idx = 0;
+  static unsigned char read_buffer[64] = {0};
+  static unsigned char out_buffer[32] = {0};
+  static uint8_t out_idx = 0;
   static serial_state_t state = SEARCHING;
 
-  int input = 0;
+  int count = 0;
+  int i = 0;
 
-  while((input = GetCharnw()) != -1) {
-    switch(state) {
-    case SEARCHING: state = serial_searching(&idx, buffer, (char)input); break;
-    case READING: state = serial_reading(&idx, buffer, (char)input); break;
-    case READING_ESCAPED: state = serial_reading_esc(&idx, buffer, (char)input); break;
-    default:
-      break;
-    }
-    if (state == DONE) { // Special case DONE because it doesn't need any input
-      state = serial_done(&idx, buffer); 
+  while((count = CDC_ReadBytes(read_buffer)) != 0) {
+    for(i = 0; i < count; i++) {
+      switch(state) {
+      case SEARCHING: state = serial_searching(&out_idx, out_buffer, read_buffer[i]); break;
+      case READING: state = serial_reading(&out_idx, out_buffer, read_buffer[i]); break;
+      case READING_ESCAPED: state = serial_reading_esc(&out_idx, out_buffer, read_buffer[i]); break;
+      default:
+        break;
+      }
+      if (state == DONE) { // Special case DONE because it doesn't need any input
+        state = serial_done(&out_idx, out_buffer); 
+      }
     }
   }
 }
@@ -103,7 +109,7 @@ void serialio_feed() {
 /*****************************************/
 /* Callbacks for handling messages */
 
-void handle_move(char* buffer, int len) {
+void handle_move(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
   Move message;
@@ -114,10 +120,10 @@ void handle_move(char* buffer, int len) {
     g_yout = (message.y >> 8) & 0xFF;
   }
 }
-void handle_nack(char* buffer, int len) {
+void handle_nack(unsigned char* buffer, int len) {
 
 }
-void handle_ack(char* buffer, int len) {
+void handle_ack(unsigned char* buffer, int len) {
 
 }
 

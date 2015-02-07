@@ -9,7 +9,7 @@
 #include <usb_core.h>
 #include <usb_cdc.h>
 
-static char* msg = "Hello\r\n";
+static unsigned char* msg = (unsigned char*)"Hello\r\n";
 
 void SysTick_Handler(void) {
   static int tick_count = 0;
@@ -42,6 +42,6 @@ int main(void)
   
   SysTick_Config(SystemCoreClock / 2000);
   while(1) {
-    //serialio_feed();
+    serialio_feed();
   }
 }

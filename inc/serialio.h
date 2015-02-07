@@ -10,7 +10,7 @@ typedef enum {
 
 typedef struct {
   uint8_t message_type;
-  void (*callback)(char* buffer, int len);
+  void (*callback)(unsigned char* buffer, int len);
 } type_callback_map_t;
 
 typedef enum {

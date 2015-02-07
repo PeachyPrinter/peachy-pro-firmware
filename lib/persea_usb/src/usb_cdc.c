@@ -7,6 +7,7 @@
 #include <usb_cdc.h>
 
 static volatile uint8_t in_ep_busy = 1;
+static volatile uint8_t out_ep_busy = 1;
 
 void QueueTx(unsigned char* out, int len) {
   /* wait for any outbound data to get sent */
@@ -24,6 +25,7 @@ int WouldTxBlock() {
 
 void CDC_SetConfiguration(void) {
   in_ep_busy = 0;
+  out_ep_busy = 0;
 }
 
 void HandleTx(void) {
@@ -31,9 +33,20 @@ void HandleTx(void) {
   in_ep_busy = 0;
 }
 
-void HandleRX(void) {
+void HandleRx(void) {
   _ClearEP_CTR_RX(2);
+  //_SetEPRxStatus(2, EP_RX_VALID);
+}
+
+int CDC_ReadBytes(unsigned char* out) {
+  if (out_ep_busy) { return 0; }
+  if ((_GetEPRxStatus(2) & EP_RX_MASK) != EP_RX_NAK) { return 0; }
+
+  uint8_t xfer_count = _GetEPRxCount(2);
+  PMAToUserBufferCopy(out, EP2_RX_ADDR, xfer_count);
+
   _SetEPRxStatus(2, EP_RX_VALID);
+  return xfer_count;
 }
 
 void HandleCDC(usb_dev_t* usb, uint8_t epIndex) {
@@ -44,7 +57,7 @@ void HandleCDC(usb_dev_t* usb, uint8_t epIndex) {
     break;
   case 2:
     /* OUT endpoint */
-    HandleRX();
+    HandleRx();
     break;
   case 3:
     /* IN endpoint */
