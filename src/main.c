@@ -9,7 +9,16 @@
 #include <usb_core.h>
 #include <usb_cdc.h>
 
+static char* msg = "Hello\r\n";
+
 void SysTick_Handler(void) {
+  static int tick_count = 0;
+  if (tick_count > 2000) {
+    if(!WouldTxBlock()) { QueueTx(msg, 7); }
+    tick_count = 0;
+  }
+  tick_count++;
+
   update_pwm();
 }
 
@@ -31,10 +40,8 @@ int main(void)
   
   initialize_pwm();
   
-//  SysTick_Config(SystemCoreClock / 2000);
-  char* buf = "Hello\n";
+  SysTick_Config(SystemCoreClock / 2000);
   while(1) {
-    //QueueTx(buf, 6);
     //serialio_feed();
   }
 }

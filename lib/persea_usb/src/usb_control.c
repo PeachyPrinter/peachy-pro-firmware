@@ -4,6 +4,7 @@
 #include <usb_core.h>
 #include <usb_regs.h>
 #include <usb_control.h>
+#include <usb_cdc.h>
 
 typedef struct {
   uint8_t bmRequestType;
@@ -245,6 +246,7 @@ static void HandleSetConfiguration(usb_dev_t* usb, usb_setup_req_t* setup, uint8
   _SetEPTxStatus(3, EP_TX_NAK);
   _SetEPAddress(3, 3);
 
+  CDC_SetConfiguration();
 }
 
 void DoNothingFunction() {
