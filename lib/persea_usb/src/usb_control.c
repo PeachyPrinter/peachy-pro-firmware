@@ -242,7 +242,7 @@ static void HandleSetConfiguration(usb_dev_t* usb, usb_setup_req_t* setup, uint8
   _SetEPAddress(2, 2);
 
   EP_Config(3, EP_IN, EP_BULK, EP3_TX_ADDR);
-  _SetEPTxStatus(1, EP_TX_NAK);
+  _SetEPTxStatus(3, EP_TX_NAK);
   _SetEPAddress(3, 3);
 
 }
