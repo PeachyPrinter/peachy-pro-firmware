@@ -347,9 +347,6 @@ static void HandleControlPacket() {
   _SetEPRxStatus(0, EP_RX_VALID);
 }
 
-uint8_t send_sizes[512];
-uint16_t send_size_idx = 0;
-
 static void SendNextEP0() {
   if(ep0_output.count == 0 && ep0_output.send_zlp == 0) {
     return;
@@ -361,7 +358,6 @@ static void SendNextEP0() {
     return;
   }
   if(ep0_output.count < 64) {
-    send_sizes[send_size_idx++] = ep0_output.count;
     WriteEP0Ctrl(ep0_output.buf, ep0_output.count);
     ep0_output.count = 0;
     return;
@@ -371,10 +367,8 @@ static void SendNextEP0() {
     ep0_output.send_zlp = 1;
   }
   WriteEP0Ctrl(ep0_output.buf, 64);
-  send_sizes[send_size_idx++] = 64;
   ep0_output.buf += 64;
   ep0_output.count -= 64;
-  if(send_size_idx > 511) { send_size_idx = 511; }
 }
 
 void HandleEP0(usb_dev_t* usb) {
