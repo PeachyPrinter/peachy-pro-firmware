@@ -7,7 +7,7 @@ void initialize_pwm(void) {
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
   GPIO_InitTypeDef gp;
-  gp.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_2;
+  gp.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;
   gp.GPIO_Mode = GPIO_Mode_AF;
   gp.GPIO_Speed = GPIO_Speed_50MHz;
   gp.GPIO_OType = GPIO_OType_PP;
@@ -16,7 +16,9 @@ void initialize_pwm(void) {
         
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
   GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_2); // GPIO_AF_2 = TIM2
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_2); // GPIO_AF_2 = TIM2
   GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_2); // GPIO_AF_2 = TIM2
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_2); // GPIO_AF_2 = TIM2
 
   TIM_TimeBaseInitTypeDef ti;
   ti.TIM_Prescaler = 0;
@@ -40,8 +42,14 @@ void initialize_pwm(void) {
   TIM_OC1Init(TIM2, &oc);
   TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Enable);
 
+  TIM_OC2Init(TIM2, &oc);
+  TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Enable);
+
   TIM_OC3Init(TIM2, &oc);
   TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
+
+  TIM_OC4Init(TIM2, &oc);
+  TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Enable);
 }
 
 typedef struct  {
@@ -59,6 +67,8 @@ const point points[] = {
 };
 
 void update_pwm(void) {
-  TIM_SetCompare1(TIM2, g_xout);
-  TIM_SetCompare3(TIM2, g_yout);
+  TIM_SetCompare1(TIM2, g_xout >> 8);
+  TIM_SetCompare2(TIM2, g_xout & 0xFF);
+  TIM_SetCompare3(TIM2, g_yout >> 8);
+  TIM_SetCompare4(TIM2, g_yout & 0xFF);
 }

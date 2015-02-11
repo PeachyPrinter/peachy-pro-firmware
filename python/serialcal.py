@@ -6,6 +6,7 @@ import sys
 import time
 import math
 import numpy
+import struct
 
 s = serial.Serial(sys.argv[1], timeout=2)
 sent = 0
@@ -24,10 +25,17 @@ def send(msg, msg_type):
     sent += len(out)
     s.write(''.join(out))
 
-for x in xrange(65535):
+print '\t'.join(['x','ch0','ch1','ch2','ch3'])
+for x in xrange(1, 65535):
     pt = move_pb2.Move(x=x, y=x, id=x, laserPower=0)
     send(pt.SerializeToString(), '\x02')
-    meas = move_pb2.Measure(id=x, channel=0)
-    send(meas.SerializeToString(), '\x03')
-    res = s.read(10)
-    print x, repr(res)
+
+    results = [x]
+    for y in xrange(4):
+      meas = move_pb2.Measure(id=x, channel=y)
+      send(meas.SerializeToString(), '\x03')
+      res = s.read(8)
+      vals = struct.unpack('IHH', res)
+      results.append(vals[1])
+
+    print '\t'.join(str(r) for r in results)

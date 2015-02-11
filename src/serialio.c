@@ -120,8 +120,8 @@ void handle_move(unsigned char* buffer, int len) {
 
   status = pb_decode(&stream, Move_fields, &message);
   if(status) {
-    g_xout = (message.x >> 8) & 0xFF;
-    g_yout = (message.y >> 8) & 0xFF;
+    g_xout = message.x;
+    g_yout = message.y;
   }
 }
 
