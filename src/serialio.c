@@ -3,6 +3,8 @@
 #include "pb_decode.h"
 #include "move.pb.h"
 #include <usb_cdc.h>
+#include <i2c.h>
+#include <clock.h>
 
 /**
  * Serial protocol
@@ -33,11 +35,13 @@ extern volatile int g_yout;
 void handle_move(unsigned char* buffer, int len);
 void handle_nack(unsigned char* buffer, int len);
 void handle_ack(unsigned char* buffer, int len);
+void handle_measure(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
   { ACK, &handle_ack },
   { MOVE, &handle_move }, 
+  { MEASURE, &handle_measure },
   { 0, 0 }
 };
 
@@ -120,6 +124,29 @@ void handle_move(unsigned char* buffer, int len) {
     g_yout = (message.y >> 8) & 0xFF;
   }
 }
+
+typedef struct {
+  uint32_t id;
+  uint16_t val;
+} measure_output_t;
+
+
+void handle_measure(unsigned char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+  Measure message;
+  measure_output_t out;
+
+  status = pb_decode(&stream, Measure_fields, &message);
+  if(status) {
+    out.id = message.id;
+    i2c_trigger_capture(message.channel);
+    delay_ms(10);
+    out.val = i2c_read_values();
+    QueueTx((unsigned char*)&out, sizeof(out));
+  }
+}
+
 void handle_nack(unsigned char* buffer, int len) {
 
 }

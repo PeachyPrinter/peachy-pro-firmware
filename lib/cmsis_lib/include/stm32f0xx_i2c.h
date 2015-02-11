@@ -458,7 +458,7 @@ void I2C_DMACmd(I2C_TypeDef* I2Cx, uint32_t I2C_DMAReq, FunctionalState NewState
 FlagStatus I2C_GetFlagStatus(I2C_TypeDef* I2Cx, uint32_t I2C_FLAG);
 void I2C_ClearFlag(I2C_TypeDef* I2Cx, uint32_t I2C_FLAG);
 ITStatus I2C_GetITStatus(I2C_TypeDef* I2Cx, uint32_t I2C_IT);
-void I2C_ClearITPendingBit(I2C_TypeDef* I2Cx, uint32_t I2C_IT);
+void I2C_ClearITPendingxBit(I2C_TypeDef* I2Cx, uint32_t I2C_IT);
 
 
 #ifdef __cplusplus

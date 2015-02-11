@@ -16,7 +16,8 @@ typedef struct {
 typedef enum {
   NACK = 0,
   ACK = 1,
-  MOVE = 2
+  MOVE = 2,
+  MEASURE = 3
 } message_types_t;
 
 void serialio_feed(void);

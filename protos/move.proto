@@ -13,3 +13,8 @@ message Nack{
     required int32 id = 1;
     required int32 reason = 2;
 }
+
+message Measure {
+  required int32 id = 1;
+  required int32 channel = 2;
+}

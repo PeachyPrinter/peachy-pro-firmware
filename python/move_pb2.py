@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='move.proto',
   package='',
-  serialized_pb='\n\nmove.proto\"<\n\x04Move\x12\n\n\x02id\x18\x01 \x02(\x05\x12\t\n\x01x\x18\x02 \x02(\x05\x12\t\n\x01y\x18\x03 \x02(\x05\x12\x12\n\nlaserPower\x18\x04 \x02(\x05\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x02(\x05\"\"\n\x04Nack\x12\n\n\x02id\x18\x01 \x02(\x05\x12\x0e\n\x06reason\x18\x02 \x02(\x05')
+  serialized_pb='\n\nmove.proto\"<\n\x04Move\x12\n\n\x02id\x18\x01 \x02(\x05\x12\t\n\x01x\x18\x02 \x02(\x05\x12\t\n\x01y\x18\x03 \x02(\x05\x12\x12\n\nlaserPower\x18\x04 \x02(\x05\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x02(\x05\"\"\n\x04Nack\x12\n\n\x02id\x18\x01 \x02(\x05\x12\x0e\n\x06reason\x18\x02 \x02(\x05\"&\n\x07Measure\x12\n\n\x02id\x18\x01 \x02(\x05\x12\x0f\n\x07\x63hannel\x18\x02 \x02(\x05')
 
 
 
@@ -129,9 +129,45 @@ _NACK = _descriptor.Descriptor(
   serialized_end=129,
 )
 
+
+_MEASURE = _descriptor.Descriptor(
+  name='Measure',
+  full_name='Measure',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='Measure.id', index=0,
+      number=1, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='channel', full_name='Measure.channel', index=1,
+      number=2, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=131,
+  serialized_end=169,
+)
+
 DESCRIPTOR.message_types_by_name['Move'] = _MOVE
 DESCRIPTOR.message_types_by_name['Ack'] = _ACK
 DESCRIPTOR.message_types_by_name['Nack'] = _NACK
+DESCRIPTOR.message_types_by_name['Measure'] = _MEASURE
 
 class Move(_message.Message):
   __metaclass__ = _reflection.GeneratedProtocolMessageType
@@ -150,6 +186,12 @@ class Nack(_message.Message):
   DESCRIPTOR = _NACK
 
   # @@protoc_insertion_point(class_scope:Nack)
+
+class Measure(_message.Message):
+  __metaclass__ = _reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _MEASURE
+
+  # @@protoc_insertion_point(class_scope:Measure)
 
 
 # @@protoc_insertion_point(module_scope)
