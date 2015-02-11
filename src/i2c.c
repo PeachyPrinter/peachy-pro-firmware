@@ -5,8 +5,18 @@
 void i2c_trigger_capture(uint8_t chan) {
   while(I2C_GetFlagStatus(I2C1, I2C_ISR_BUSY) != RESET);
 
-  // put the 2 lsb channel bits into bit 13:12 and set bit 14 to 1 to trigger single-ended capture.
-  chan = ((chan & 0x03) | 0x04) << 4;
+  // put the 3 lsb channel bits into bit 14:12.
+// from the ads1115 datasheet:
+// 0x00 = AINp = AIN0 and AINn = AIN1
+// 0x01 = AINp = AIN0 and AINn = AIN3
+// 0x02 = AINp = AIN1 and AINn = AIN3
+// 0x03 = AINp = AIN2 and AINn = AIN3
+// 0x04 = AINp = AIN0 and AINn = GND
+// 0x05 = AINp = AIN1 and AINn = GND
+// 0x06 = AINp = AIN2 and AINn = GND
+// 0x07 = AINp = AIN3 and AINn = GND
+
+  chan = (chan & 0x03) << 4;
 
   I2C_TransferHandling(I2C1, 0x90, 3, I2C_AutoEnd_Mode, I2C_Generate_Start_Write);
   I2C_ClearFlag(I2C1, I2C_ICR_NACKCF | I2C_ICR_STOPCF);

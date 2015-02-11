@@ -25,13 +25,13 @@ def send(msg, msg_type):
     sent += len(out)
     s.write(''.join(out))
 
-print '\t'.join(['x','ch0','ch1','ch2','ch3'])
+print '\t'.join(['x','ch01','ch23'])
 for x in xrange(1, 65535):
     pt = move_pb2.Move(x=x, y=x, id=x, laserPower=0)
     send(pt.SerializeToString(), '\x02')
 
     results = [x]
-    for y in xrange(4):
+    for y in [0x00, 0x03]:
       meas = move_pb2.Measure(id=x, channel=y)
       send(meas.SerializeToString(), '\x03')
       res = s.read(8)
