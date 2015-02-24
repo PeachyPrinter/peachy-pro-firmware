@@ -35,7 +35,7 @@ for x in xrange(1, 65535):
       meas = move_pb2.Measure(id=x, channel=y)
       send(meas.SerializeToString(), '\x03')
       res = s.read(8)
-      vals = struct.unpack('IHH', res)
+      vals = struct.unpack('IhH', res)
       results.append(vals[1])
 
     print '\t'.join(str(r) for r in results)
