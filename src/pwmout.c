@@ -7,18 +7,32 @@ void initialize_pwm(void) {
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
   GPIO_InitTypeDef gp;
-  gp.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;
   gp.GPIO_Mode = GPIO_Mode_AF;
   gp.GPIO_Speed = GPIO_Speed_50MHz;
   gp.GPIO_OType = GPIO_OType_PP;
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
+
+  // X-Coarse
+  gp.GPIO_Pin = GPIO_Pin_15;
   GPIO_Init(GPIOA, &gp);
+  
+  // X-Fine
+  gp.GPIO_Pin = GPIO_Pin_3;
+  GPIO_Init(GPIOB, &gp);
+
+  // Y-Coarse
+  gp.GPIO_Pin = GPIO_Pin_10;
+  GPIO_Init(GPIOB, &gp);
+
+  // Y-Fine
+  gp.GPIO_Pin = GPIO_Pin_11;
+  GPIO_Init(GPIOB, &gp);
         
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_2); // GPIO_AF_2 = TIM2
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_2); // GPIO_AF_2 = TIM2
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_2); // GPIO_AF_2 = TIM2
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_2); // GPIO_AF_2 = TIM2
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource15, GPIO_AF_2); // GPIO_AF_2 = TIM2
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource3, GPIO_AF_2); // GPIO_AF_2 = TIM2
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_2); // GPIO_AF_2 = TIM2
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_2); // GPIO_AF_2 = TIM2
 
   TIM_TimeBaseInitTypeDef ti;
   ti.TIM_Prescaler = 0;

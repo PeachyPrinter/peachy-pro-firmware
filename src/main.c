@@ -35,7 +35,8 @@ int main(void)
   USB_Start();
   
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-  
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
+
   // Set Up PA4 and PA5 as debug pins
   GPIO_InitTypeDef gp;
   gp.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
@@ -45,8 +46,20 @@ int main(void)
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOA, &gp);
 
+  gp.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+  gp.GPIO_Mode = GPIO_Mode_OUT;
+  gp.GPIO_Speed = GPIO_Speed_50MHz;
+  gp.GPIO_OType = GPIO_OType_PP;
+  gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(GPIOB, &gp);
+
   i2c_init();
   initialize_pwm();
+
+  GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1);
+  GPIO_WriteBit(GPIOB, GPIO_Pin_13, 1);
+  GPIO_WriteBit(GPIOB, GPIO_Pin_14, 1);
+  GPIO_WriteBit(GPIOB, GPIO_Pin_15, 1);
   
   SysTick_Config(SystemCoreClock / 2000);
   while(1) {
