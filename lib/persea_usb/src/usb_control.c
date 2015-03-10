@@ -226,13 +226,18 @@ static void HandleSetAddress(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx
 //  _SetDADDR((setup->wValue & 0x7F) | DADDR_EF);
 }
 
+void delay_ms(int ms);
+
 static void HandleSetConfiguration(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   WriteEP0Status();
   usb->state = CONFIGURED;
 
-  EP_Config(0, EP_OUT, EP_CONTROL, EP0_RX_ADDR);
+  delay_ms(5);
+
+/*  EP_Config(0, EP_OUT, EP_CONTROL, EP0_RX_ADDR);
   EP_Config(0, EP_IN, EP_CONTROL, EP0_TX_ADDR);
   _SetEPAddress(0, 0);
+*/
 
   EP_Config(1, EP_IN, EP_INTERRUPT, EP1_TX_ADDR);
   _SetEPTxStatus(1, EP_TX_NAK);
