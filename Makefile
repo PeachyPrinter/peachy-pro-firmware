@@ -81,7 +81,7 @@ $(PROJ_NAME).bin: $(PROJ_NAME).elf
 
 program: $(PROJ_NAME).bin
 #	openocd -f $(OPENOCD_BOARD_DIR)/stm32f0discovery.cfg -f $(OPENOCD_PROC_FILE) -c "stm_flash `pwd`/$(PROJ_NAME).bin" -c shutdown
-	dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v
+	dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v -d 0483:df11
 
 programocd: $(PROJ_NAME).bin
 	openocd -f stlink.cfg -c "program $(PROJ_NAME).bin 0x08000000" -c "reset run"
