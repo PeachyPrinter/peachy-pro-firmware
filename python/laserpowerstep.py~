@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+import serial
+import move_pb2
+import sys
+import time
+import math
+import numpy
+import struct
+
+s = serial.Serial(sys.argv[1], timeout=2)
+
+laser_power = 0
+
+while True:
+    x = None
+    p = input("Enter target power: ")
+    try:
+        x = int(p)
+    except ValueError:
+        x = None
+    if (x is None) or (0 <= x <= 255):
+        print "Invalid value (enter a number between 0 and 255)"
