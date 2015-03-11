@@ -1,0 +1,22 @@
+message Move {
+  required int32 x = 1;
+  required int32 y = 2;
+  required uint32 laserPower = 3;
+}
+
+message DripRecorded {
+  required uint32 drips = 1;
+}
+
+message SetDripCount {
+  required uint32 drips = 1;
+}
+
+message MoveToDripCount {
+  required uint32 drips = 1;
+}
+
+message Measure {
+  required int32 id = 1;
+  required int32 channel = 2;
+}
