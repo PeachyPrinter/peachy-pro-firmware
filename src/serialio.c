@@ -27,6 +27,7 @@
 
 extern volatile int g_xout;
 extern volatile int g_yout;
+extern volatile unsigned char g_laserpower;
 
 #define HEADER 0x40
 #define FOOTER 0x41
@@ -122,6 +123,7 @@ void handle_move(unsigned char* buffer, int len) {
   if(status) {
     g_xout = message.x;
     g_yout = message.y;
+    g_laserpower = message.laserPower & 0xFF;
   }
 }
 

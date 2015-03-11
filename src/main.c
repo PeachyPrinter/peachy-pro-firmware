@@ -10,7 +10,6 @@
 #include <usb_cdc.h>
 #include <i2c.h>
 
-static unsigned char* msg = (unsigned char*)"Hello\r\n";
 static volatile uint32_t tick = 0;
 
 void delay_ms(int ms) {
