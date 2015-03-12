@@ -5,6 +5,7 @@
 #include "iolib.h"
 #include "serialio.h"
 #include "pwmout.h"
+#include "dripper.h"
 
 #include <usb_core.h>
 #include <usb_cdc.h>
@@ -54,6 +55,7 @@ int main(void)
 
   i2c_init();
   initialize_pwm();
+  initialize_dripper();
 
   GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1);
   GPIO_WriteBit(GPIOB, GPIO_Pin_13, 1);
