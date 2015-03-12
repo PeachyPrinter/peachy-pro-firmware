@@ -1,7 +1,7 @@
 #include "serialio.h"
 #include "iolib.h"
 #include "pb_decode.h"
-#include "move.pb.h"
+#include "messages.pb.h"
 #include <usb_cdc.h>
 #include <i2c.h>
 #include <clock.h>
