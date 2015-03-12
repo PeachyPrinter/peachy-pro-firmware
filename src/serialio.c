@@ -46,6 +46,24 @@ static type_callback_map_t callbacks[] = {
   { 0, 0 }
 };
 
+void serialio_write(unsigned char* buffer, uint8_t len) {
+  unsigned char to_send[len*2+2]; // worst case, every single byte gets escaped, plus header and footer
+  int out_idx = 0;
+  int in_idx;
+
+  to_send[out_idx++] = HEADER;
+  for(in_idx = 0; in_idx < len; in_idx++) {
+    if (buffer[in_idx] == HEADER || buffer[in_idx] == FOOTER || buffer[in_idx] == ESCAPE_CHAR) {
+      to_send[out_idx++] = ESCAPE_CHAR;
+      to_send[out_idx++] = ~buffer[in_idx];
+    } else {
+      to_send[out_idx++] = buffer[in_idx];
+    }
+  }
+  to_send[out_idx++] = FOOTER;
+  QueueTx(to_send, out_idx);
+}
+
 serial_state_t serial_searching(uint8_t* idx, unsigned char* buffer, unsigned char input) {
   if(input != HEADER) {
     return SEARCHING;
@@ -145,6 +163,7 @@ void handle_measure(unsigned char* buffer, int len) {
     i2c_trigger_capture(message.channel);
     delay_ms(10);
     out.val = i2c_read_values();
+// TODO replace this with a real encoded thing
     QueueTx((unsigned char*)&out, sizeof(out));
   }
 }

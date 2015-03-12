@@ -17,9 +17,12 @@ typedef enum {
   NACK = 0,
   ACK = 1,
   MOVE = 2,
-  MEASURE = 3
+  DRIP_RECORDED = 3,
+  SET_DRIP_COUNT = 4,
+  MOVE_TO_DRIP_COUNT = 5,
+  MEASURE = 6
 } message_types_t;
 
 void serialio_feed(void);
-
+void serialio_write(unsigned char* buffer, uint8_t len);
 #endif

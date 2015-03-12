@@ -1,8 +1,14 @@
 #include "stm32f0xx_gpio.h"
 #include "stm32f0xx_exti.h"
 #include "dripper.h"
+#include "serialio.h"
 
-unsigned int g_dripcount = 0;
+#include <usb_cdc.h>
+#include "pb_encode.h"
+
+#include "messages.pb.h"
+
+volatile uint32_t g_dripcount = 0;
 
 void EXTI0_1_IRQHandler(void) {
   if (EXTI_GetITStatus(EXTI_Line1) != RESET) {
@@ -47,4 +53,22 @@ void initialize_dripper(void) {
   nvic.NVIC_IRQChannelPriority = 0x00;
   nvic.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&nvic);
+}
+
+void send_updated_drip_count(void) {
+  uint8_t out[16];
+  uint8_t type;
+  pb_ostream_t stream = pb_ostream_from_buffer(out, sizeof(out));
+  bool status;
+  DripRecorded record;
+
+  type = DRIP_RECORDED;
+  pb_write(&stream, &type, 1);
+
+  record.drips = g_dripcount;
+
+  status = pb_encode(&stream, DripRecorded_fields, &record);
+  if (status) {
+    serialio_write(out, stream.bytes_written);
+  }
 }

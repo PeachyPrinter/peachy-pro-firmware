@@ -11,6 +11,8 @@
 #include <usb_cdc.h>
 #include <i2c.h>
 
+extern volatile uint32_t g_dripcount;
+
 static volatile uint32_t tick = 0;
 
 void delay_ms(int ms) {
@@ -63,7 +65,14 @@ int main(void)
   GPIO_WriteBit(GPIOB, GPIO_Pin_15, 1);
   
   SysTick_Config(SystemCoreClock / 2000);
+
+  int last_drip_count = g_dripcount;
   while(1) {
     serialio_feed();
+
+    if (g_dripcount != last_drip_count) {
+      last_drip_count = g_dripcount;
+      send_updated_drip_count();
+    }
   }
 }
