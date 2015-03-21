@@ -104,7 +104,9 @@ void update_pwm(void) {
     move_start = (move_start + 1) % MOVE_SIZE;
     move_count--;
   } else {
-    // Turn off laser if we don't have any pending move commands
+    // Turn off laser if we don't have any pending move commands, but
+    // leave the mirrors in the same place. We're likely going to
+    // continue from there.
     TIM_SetCompare1(TIM3, 0);
   }
 }
