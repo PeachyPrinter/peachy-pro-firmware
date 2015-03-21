@@ -28,6 +28,7 @@
 extern volatile int g_xout;
 extern volatile int g_yout;
 extern volatile unsigned char g_laserpower;
+extern volatile uint32_t g_dripcount;
 
 #define HEADER 0x40
 #define FOOTER 0x41
@@ -37,12 +38,14 @@ void handle_move(unsigned char* buffer, int len);
 void handle_nack(unsigned char* buffer, int len);
 void handle_ack(unsigned char* buffer, int len);
 void handle_measure(unsigned char* buffer, int len);
+void handle_set_drip_count(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
   { ACK, &handle_ack },
   { MOVE, &handle_move }, 
   { MEASURE, &handle_measure },
+  { SET_DRIP_COUNT, &handle_set_drip_count },
   { 0, 0 }
 };
 
@@ -165,6 +168,16 @@ void handle_measure(unsigned char* buffer, int len) {
     out.val = i2c_read_values();
 // TODO replace this with a real encoded thing
     QueueTx((unsigned char*)&out, sizeof(out));
+  }
+}
+
+void handle_set_drip_count(unsigned char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+  SetDripCount message;
+  status = pb_decode(&stream, SetDripCount_fields, &message);
+  if (status) {
+    g_dripcount = message.drips;
   }
 }
 
