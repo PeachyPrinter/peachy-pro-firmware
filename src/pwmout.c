@@ -1,8 +1,8 @@
 #include "pwmout.h"
 
-volatile int g_xout = 128;
-volatile int g_yout = 128;
-volatile unsigned char g_laserpower = 0;
+extern volatile uint8_t move_start;
+extern volatile uint8_t move_count;
+extern Move move_buffer[MOVE_SIZE];
 
 void initialize_pwm(void) {
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
@@ -83,12 +83,28 @@ void initialize_pwm(void) {
 }
 
 void update_pwm(void) {
-  // Position
-  TIM_SetCompare1(TIM2, g_xout >> 8);
-  TIM_SetCompare2(TIM2, g_xout & 0xFF);
-  TIM_SetCompare3(TIM2, g_yout >> 8);
-  TIM_SetCompare4(TIM2, g_yout & 0xFF);
+  int32_t xout;
+  int32_t yout;
+  uint32_t laserpower;
 
-  // Laser Power
-  TIM_SetCompare1(TIM3, g_laserpower);
+  if (move_count > 0) {
+    xout = move_buffer[move_start].x;
+    yout = move_buffer[move_start].y;
+    laserpower = move_buffer[move_start].laserPower;
+
+    // Position
+    TIM_SetCompare1(TIM2, xout >> 8);
+    TIM_SetCompare2(TIM2, xout & 0xFF);
+    TIM_SetCompare3(TIM2, yout >> 8);
+    TIM_SetCompare4(TIM2, yout & 0xFF);
+    
+    // Laser Power
+    TIM_SetCompare1(TIM3, laserpower & 0xFF);
+
+    move_start = (move_start + 1) % MOVE_SIZE;
+    move_count--;
+  } else {
+    // Turn off laser if we don't have any pending move commands
+    TIM_SetCompare1(TIM3, 0);
+  }
 }

@@ -5,7 +5,7 @@
 #include <usb_cdc.h>
 #include <i2c.h>
 #include <clock.h>
-
+#include "pwmout.h"
 /**
  * Serial protocol
  *
@@ -25,10 +25,10 @@
  * DONE - read 0x13
 */
 
-extern volatile int g_xout;
-extern volatile int g_yout;
-extern volatile unsigned char g_laserpower;
 extern volatile uint32_t g_dripcount;
+extern volatile uint8_t move_start;
+extern volatile uint8_t move_count;
+extern Move move_buffer[MOVE_SIZE];
 
 #define HEADER 0x40
 #define FOOTER 0x41
@@ -142,9 +142,11 @@ void handle_move(unsigned char* buffer, int len) {
 
   status = pb_decode(&stream, Move_fields, &message);
   if(status) {
-    g_xout = message.x;
-    g_yout = message.y;
-    g_laserpower = message.laserPower & 0xFF;
+    // wait until there's room in the move buffer
+    while(move_count == MOVE_SIZE) ;
+
+    int write_idx = (move_start + move_count) % MOVE_SIZE;
+    move_buffer[write_idx] = message;
   }
 }
 

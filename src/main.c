@@ -15,6 +15,10 @@ extern volatile uint32_t g_dripcount;
 
 static volatile uint32_t tick = 0;
 
+uint8_t move_start = 0;
+uint8_t move_count = 0;
+Move move_buffer[MOVE_SIZE];
+
 void delay_ms(int ms) {
   uint32_t end = tick + (ms*2);
   while(tick < end);
