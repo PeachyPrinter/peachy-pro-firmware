@@ -22,13 +22,6 @@ void delay_ms(int ms) {
 
 void SysTick_Handler(void) {
   tick += 1;
-  static int tick_count = 0;
-  if (tick_count > 2000) {
-//    if(!WouldTxBlock()) { QueueTx(msg, 7); }
-    tick_count = 0;
-  }
-  tick_count++;
-
   update_pwm();
 }
 
