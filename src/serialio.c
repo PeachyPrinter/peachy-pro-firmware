@@ -147,6 +147,7 @@ void handle_move(unsigned char* buffer, int len) {
 
     int write_idx = (move_start + move_count) % MOVE_SIZE;
     move_buffer[write_idx] = message;
+    move_count++;
   }
 }
 
