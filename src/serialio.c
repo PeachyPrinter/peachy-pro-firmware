@@ -116,7 +116,7 @@ void serialio_feed() {
   int count = 0;
   int i = 0;
 
-  while((count = CDC_ReadBytes(read_buffer)) != 0) {
+  if((count = CDC_ReadBytes(read_buffer)) != 0) {
     for(i = 0; i < count; i++) {
       switch(state) {
       case SEARCHING: state = serial_searching(&out_idx, out_buffer, read_buffer[i]); break;
