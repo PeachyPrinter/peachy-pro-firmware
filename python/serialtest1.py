@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import serial
-import move_pb2
+import messages_pb2
 import sys
 import time
 import math
@@ -27,7 +27,7 @@ def send(msg):
 
 fsd = 256*256-1
 sz = 256*4
-points = [ move_pb2.Move(x=int(fsd/2.0 + -sz*(13*math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t))), y=int(fsd/2.0 + sz*16*math.sin(t)**3), id=1234, laserPower=24) for t in numpy.linspace(0, 6, 2048) ]
+points = [ messages_pb2.Move(x=int(fsd/2.0 + -sz*(13*math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t))), y=int(fsd/2.0 + sz*16*math.sin(t)**3), laserPower=10) for t in numpy.linspace(0, 6, 2048) ]
 
 for i in xrange(10000):
     if i % 100 == 0:
