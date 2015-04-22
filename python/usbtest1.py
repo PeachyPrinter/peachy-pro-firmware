@@ -42,7 +42,7 @@ def draw_heart(handle):
 
 def find():
     context = usb1.USBContext()
-    return context.getByVendorIDAndProductID(0x0483, 0x5740)
+    return context.getByVendorIDAndProductID(0x16d0, 0x0af3)
 
 def main():
     dev = find()
