@@ -51,9 +51,9 @@ def main():
         return
     handle = dev.open()
     try:
-        if handle.kernelDriverActive(1):
-            handle.detachKernelDriver(1)
-        handle.claimInterface(1)
+        if handle.kernelDriverActive(0):
+            handle.detachKernelDriver(0)
+        handle.claimInterface(0)
         
         draw_heart(handle)
     except (Exception,), e:
