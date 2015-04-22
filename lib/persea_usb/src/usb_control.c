@@ -26,8 +26,8 @@ static outgoing_data_t ep0_output;
  * Descriptors
  */
 #define USB_SIZ_DEVICE_DESC                     18
-#define USBD_VID                        0x0483
-#define USBD_PID                        0x5740
+#define USBD_VID                        0x16d0
+#define USBD_PID                        0x0af3
 
 const uint8_t DeviceDescriptor[USB_SIZ_DEVICE_DESC] =
 {

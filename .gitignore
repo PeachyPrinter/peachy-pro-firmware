@@ -6,3 +6,4 @@
 *.bin
 *.elf
 *.pyc
+python/venv
