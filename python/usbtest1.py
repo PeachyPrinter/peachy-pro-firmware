@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import libusb1
 import usb1
 import libusb1
 import time
@@ -13,9 +14,9 @@ import math
 sent = 0
 start = time.time()
 
-def send(handle, msg):
+def send(handle, msg, msgtype='\x02'):
     global sent
-    out = ['\x40', '\x02']  # \x02 is the message type for move
+    out = ['\x40', msgtype]  # \x02 is the message type for move
     for c in msg:
         if ord(c) in [0x40, 0x41, 0x42]:
             out.append('\x42')
@@ -26,6 +27,7 @@ def send(handle, msg):
     sent += len(out)
     #print sent, repr(''.join(out))
     #s.write(''.join(out))
+    
     handle.bulkWrite(2, ''.join(out))
 
 def draw_heart(handle):
@@ -39,6 +41,26 @@ def draw_heart(handle):
         for pt in points:
             send(handle, pt.SerializeToString())
 
+def get_id(handle):
+    # Empty identify message
+    send(handle, '', msgtype='\x07') 
+    resp = ''
+
+    # And get the response
+    try:
+        resp = handle.bulkRead(3, 64)
+    except (libusb1.USBError,), e:
+        if e.value == -7:
+            pass # timeout
+        else:
+            raise
+    if resp:
+        print "Got response of %d bytes" % (len(resp),)
+        msg = messages_pb2.IAm()
+        msg.ParseFromString(resp[1:-1])
+        print msg
+    else:
+        print "No response"
 
 def find():
     context = usb1.USBContext()
@@ -54,8 +76,8 @@ def main():
         if handle.kernelDriverActive(0):
             handle.detachKernelDriver(0)
         handle.claimInterface(0)
-        
-        draw_heart(handle)
+        get_id(handle)
+        #draw_heart(handle)
     except (Exception,), e:
         print "Got exception", repr(e)
         raise

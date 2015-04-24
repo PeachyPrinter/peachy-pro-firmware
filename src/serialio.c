@@ -1,6 +1,7 @@
 #include "serialio.h"
 #include "iolib.h"
 #include "pb_decode.h"
+#include "pb_encode.h"
 #include "messages.pb.h"
 #include <usb_cdc.h>
 #include <i2c.h>
@@ -39,6 +40,7 @@ void handle_nack(unsigned char* buffer, int len);
 void handle_ack(unsigned char* buffer, int len);
 void handle_measure(unsigned char* buffer, int len);
 void handle_set_drip_count(unsigned char* buffer, int len);
+void handle_identify(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
@@ -46,6 +48,7 @@ static type_callback_map_t callbacks[] = {
   { MOVE, &handle_move }, 
   { MEASURE, &handle_measure },
   { SET_DRIP_COUNT, &handle_set_drip_count },
+  { IDENTIFY, &handle_identify },
   { 0, 0 }
 };
 
@@ -182,6 +185,39 @@ void handle_set_drip_count(unsigned char* buffer, int len) {
   if (status) {
     g_dripcount = message.drips;
   }
+}
+
+static bool constant_string(pb_ostream_t* stream, const pb_field_t* field,
+                            void* const *arg) {
+  char* str = *(char**)arg;
+  if (!pb_encode_tag_for_field(stream, field)) {
+    return false;
+  }
+  return pb_encode_string(stream, (uint8_t*)str, strlen(str));
+}
+
+void handle_identify(unsigned char* buffer, int len) {
+  /* Identify message has nothing interesting in it to read */
+  pb_ostream_t stream;
+  uint8_t outbuf[64];
+  stream = pb_ostream_from_buffer(outbuf, 64);
+  char* swrev = "swrev 1234";
+  char* hwrev = "hwrev 3456";
+  char* sn = "unodos";
+
+  IAm message;
+  message.swrev.funcs.encode = &constant_string;
+  message.swrev.arg = swrev;
+  message.hwrev.funcs.encode = &constant_string;
+  message.hwrev.arg = hwrev;
+  message.sn.funcs.encode = &constant_string;
+  message.sn.arg = sn;
+  message.dataRate = 2000;
+  
+  if(!pb_encode(&stream, IAm_fields, &message)) {
+    return;
+  }
+  serialio_write(outbuf, stream.bytes_written);
 }
 
 void handle_nack(unsigned char* buffer, int len) {
