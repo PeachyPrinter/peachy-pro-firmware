@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import libusb1
+import sys
 import usb1
 import libusb1
 import time
@@ -44,14 +44,19 @@ def draw_heart(handle):
 def get_id(handle):
     # Empty identify message
     send(handle, '', msgtype='\x07') 
+    print "message sent, waiting for response"
     resp = ''
 
     # And get the response
-    try:
-        resp = handle.bulkRead(3, 64)
-    except (libusb1.USBError,), e:
+    for x in xrange(10):
+      try:
+        print x,
+        resp = handle.bulkRead(3, 64, timeout=10)
+        if resp:
+          break
+      except (libusb1.USBError,), e:
         if e.value == -7:
-            pass # timeout
+          time.sleep(1) #timeout
         else:
             raise
     if resp:
@@ -77,12 +82,13 @@ def main():
             handle.detachKernelDriver(0)
         handle.claimInterface(0)
         get_id(handle)
-        #draw_heart(handle)
+        draw_heart(handle)
     except (Exception,), e:
         print "Got exception", repr(e)
         raise
     finally:
-        handle.resetDevice()
+      pass
+      # handle.resetDevice()
 
 if __name__ == '__main__':
     main()
