@@ -7,3 +7,4 @@
 *.elf
 *.pyc
 python/venv
+inc/version.h

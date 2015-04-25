@@ -7,6 +7,8 @@
 #include <i2c.h>
 #include <clock.h>
 #include "pwmout.h"
+#include "version.h"
+
 /**
  * Serial protocol
  *
@@ -201,7 +203,7 @@ void handle_identify(unsigned char* buffer, int len) {
   pb_ostream_t stream;
   uint8_t outbuf[64];
   stream = pb_ostream_from_buffer(outbuf, 64);
-  char* swrev = "swrev 1234";
+  char* swrev = VERSION;
   char* hwrev = "hwrev 3456";
   char* sn = "unodos";
 

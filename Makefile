@@ -55,7 +55,7 @@ OBJS = $(SRCS:.c=.o)
 
 ###################################################
 
-.PHONY: lib proj usb nanopb
+.PHONY: lib proj usb nanopb version
 
 all: lib usb nanopb proj
 
@@ -68,9 +68,12 @@ lib:
 nanopb: 
 	$(MAKE) -C $(NANOPB_LIB)
 
-proj: 	$(PROJ_NAME).elf
+proj: version $(PROJ_NAME).elf
 
-$(PROJ_NAME).elf: $(SRCS) $(USB_PERIPH_LIB)/libpersea-usb.a
+version:
+	echo "#define VERSION \"`./version.sh`\"" > inc/version.h
+
+$(PROJ_NAME).elf: $(SRCS) $(USB_PERIPH_LIB)/libpersea-usb.a inc/version.h
 	$(CC) $(CFLAGS) $^ -o $@ -L$(STD_PERIPH_LIB) -lstm32f0  -L$(LDSCRIPT_INC) -Tstm32f0.ld -L$(NANOPB_LIB) -lnanopb
 	$(OBJCOPY) -O ihex $(PROJ_NAME).elf $(PROJ_NAME).hex
 	$(OBJDUMP) -St $(PROJ_NAME).elf >$(PROJ_NAME).lst
@@ -105,6 +108,7 @@ clean:
 	rm -f $(PROJ_NAME).bin
 	rm -f $(PROJ_NAME).map
 	rm -f $(PROJ_NAME).lst
+	rm -f inc/version.h
 
 reallyclean: clean
 	$(MAKE) -C $(STD_PERIPH_LIB) clean
