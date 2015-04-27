@@ -91,9 +91,9 @@ void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr) {
   _ClearDTOG_TX(ep);
   
   if (dir == EP_OUT) {
-    _ToggleDTOG_RX(ep);
-  } else if (dir == EP_IN) {
     _ToggleDTOG_TX(ep);
+  } else if (dir == EP_IN) {
+    _ToggleDTOG_RX(ep);
   }
   
   _SetEPTxStatus(ep, EP_TX_DIS);

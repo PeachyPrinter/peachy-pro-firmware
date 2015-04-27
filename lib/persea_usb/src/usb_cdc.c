@@ -6,13 +6,11 @@
 #include <usb_control.h>
 #include <usb_cdc.h>
 
-static volatile uint8_t in_ep_busy = 1;
 static volatile uint8_t out_ep_busy = 1;
 
 void QueueTx(unsigned char* out, int len) {
   /* wait for any outbound data to get sent */
-  while(in_ep_busy);
-  in_ep_busy = 1;
+  while(_GetEPTxStatus(3) == EP_TX_VALID) ;
 
   UserToPMABufferCopy(out, EP3_TX_ADDR, len);
   _SetEPTxCount(3, len);
@@ -20,17 +18,15 @@ void QueueTx(unsigned char* out, int len) {
 }
 
 int WouldTxBlock() {
-  return in_ep_busy;
+  return _GetEPTxStatus(3) == EP_TX_VALID;
 }
 
 void CDC_SetConfiguration(void) {
-  in_ep_busy = 0;
   out_ep_busy = 0;
 }
 
 void HandleTx(void) {
   _ClearEP_CTR_TX(3);
-  in_ep_busy = 0;
 }
 
 void HandleRx(void) {

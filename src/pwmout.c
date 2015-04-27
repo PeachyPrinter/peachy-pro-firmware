@@ -44,14 +44,17 @@ void initialize_pwm(void) {
   GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_1); // GPIO_AF_2 = TIM3 for PB4
 
   TIM_TimeBaseInitTypeDef ti;
+  // Set up the timebase for the mirror channels
   ti.TIM_Prescaler = 0;
   ti.TIM_CounterMode = TIM_CounterMode_Up;
-  ti.TIM_Period = 256;
+  ti.TIM_Period = 512;
   ti.TIM_ClockDivision = TIM_CKD_DIV1;
   ti.TIM_RepetitionCounter = 0;
   TIM_TimeBaseInit(TIM2, &ti);
   TIM_Cmd(TIM2, ENABLE);
 
+  // Laser uses all the same settings, except for 8-bit instead of 9
+  ti.TIM_Period = 256;
   TIM_TimeBaseInit(TIM3, &ti);
   TIM_Cmd(TIM3, ENABLE);
 
@@ -93,10 +96,10 @@ void update_pwm(void) {
     laserpower = move_buffer[move_start].laserPower;
 
     // Position
-    TIM_SetCompare1(TIM2, xout >> 8);
-    TIM_SetCompare2(TIM2, xout & 0xFF);
-    TIM_SetCompare3(TIM2, yout >> 8);
-    TIM_SetCompare4(TIM2, yout & 0xFF);
+    TIM_SetCompare1(TIM2, xout >> 9);
+    TIM_SetCompare2(TIM2, xout & 0x1FF);
+    TIM_SetCompare3(TIM2, yout >> 9);
+    TIM_SetCompare4(TIM2, yout & 0x1FF);
     
     // Laser Power
     TIM_SetCompare1(TIM3, laserpower & 0xFF);
