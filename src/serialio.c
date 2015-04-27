@@ -128,6 +128,9 @@ void handle_identify(unsigned char* buffer, int len) {
   char* hwrev = "hwrev 3456";
   char* sn = "unodos";
 
+  uint8_t type = IAM;
+  pb_write(&stream, &type, 1);
+
   IAm message;
   message.swrev.funcs.encode = &constant_string;
   message.swrev.arg = swrev;
