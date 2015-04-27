@@ -57,7 +57,7 @@ OBJS = $(SRCS:.c=.o)
 
 .PHONY: lib proj usb nanopb version
 
-all: lib usb nanopb proj
+all: lib usb nanopb proj main.bin
 
 usb:
 	$(MAKE) -C $(USB_PERIPH_LIB)
