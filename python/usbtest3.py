@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# test whether libusb releases the GIL
+
 import sys
 import usb1
 import libusb1
@@ -7,12 +9,24 @@ import time
 import messages_pb2
 import numpy
 import math
+import threading
 
 #   idVendor           0x0483 STMicroelectronics
 #  idProduct          0x5740 STM32F407
 
 sent = 0
 start = time.time()
+
+def benchmark(count):
+    for i in xrange(count):
+        start = time.time()
+        s = 0
+        for x in xrange(int(1e8)):
+            s += x
+            if x % 1000 == 0:
+                time.sleep(0)
+        end = time.time()
+        print "Benchmark took %f sec" % (end - start,)
 
 def send(handle, msg, msgtype='\x02'):
     global sent
@@ -22,10 +36,8 @@ def send(handle, msg, msgtype='\x02'):
 
 def draw_heart(handle):
     fsd = 256*256-1
-    sz = 256*4
+    sz = 256*8
     points = [ messages_pb2.Move(x=int(fsd/2.0 + -sz*(13*math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t))), y=int(fsd/2.0 + sz*16*math.sin(t)**3), laserPower=10) for t in numpy.linspace(0, 6, 2048) ]
-
-    print "First point %r" % (points[0].SerializeToString(),)
 
     for i in xrange(10000):
         print "Sending batches of %d points" % (len(points,))
@@ -65,6 +77,9 @@ def find():
     return context.getByVendorIDAndProductID(0x16d0, 0x0af3)
 
 def main():
+    benchmark(1)
+    #t = threading.Thread(target=lambda: benchmark(10000))
+    #t.start()
     dev = find()
     if not dev:
         print "Couldn't find device"
