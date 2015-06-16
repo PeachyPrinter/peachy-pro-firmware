@@ -151,6 +151,10 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
 
   uint8_t descriptor = HIBYTE(setup->wValue);
 
+  // First packet is always Data1 on control transfers
+  _ClearDTOG_TX(0);
+  _ToggleDTOG_TX(0);
+
   switch(descriptor) {
   case DESC_DEVICE_QUALIFIER:
     to_send = DeviceQualifier;
