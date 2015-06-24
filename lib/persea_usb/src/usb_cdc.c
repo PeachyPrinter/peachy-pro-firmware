@@ -6,6 +6,19 @@
 #include <usb_control.h>
 #include <usb_cdc.h>
 
+
+#define INPUT_SIZE 128
+
+struct _input_packet_buffer {
+  // Ring buffer
+  uint8_t buf[INPUT_SIZE];
+  int read_idx;
+  int write_idx;
+  int avail_to_read;
+};
+
+static struct _input_packet_buffer input_packets = { "", 0, 0, 0 };
+
 static volatile uint8_t out_ep_busy = 1;
 
 void QueueTx(unsigned char* out, int len) {
@@ -34,15 +47,69 @@ void HandleRx(void) {
   //_SetEPRxStatus(2, EP_RX_VALID);
 }
 
-int CDC_ReadBytes(unsigned char* out) {
-  if (out_ep_busy) { return 0; }
-  if ((_GetEPRxStatus(2) & EP_RX_MASK) != EP_RX_NAK) { return 0; }
-
+static void read_from_out_ep() {
+  if ((_GetEPRxStatus(2) & EP_RX_MASK) != EP_RX_NAK) { return; }
+  
   uint8_t xfer_count = _GetEPRxCount(2);
-  PMAToUserBufferCopy(out, EP2_RX_ADDR, xfer_count);
+  if ((INPUT_SIZE - input_packets.avail_to_read) < xfer_count) {
+    return; // no room
+  }
 
+  uint8_t usb_read[64];
+  PMAToUserBufferCopy(usb_read, EP2_RX_ADDR, xfer_count);
+  
+  int i;
+  for(i = 0; i < xfer_count; i++) {
+    input_packets.buf[input_packets.write_idx] = usb_read[i];
+    input_packets.write_idx += 1;
+    if (input_packets.write_idx >= INPUT_SIZE) {
+      input_packets.write_idx = 0;
+    }
+  }
+  input_packets.avail_to_read += xfer_count;
   _SetEPRxStatus(2, EP_RX_VALID);
-  return xfer_count;
+}
+
+int CDC_ReadBytes(unsigned char* out) {
+  /* Algorithm thoughts here:
+     - check our input buffer first. 
+       - If there are no bytes available, read from PMA
+         - return 0 if the PMA is empty
+       - check to see if we have an entire command worth. 
+       - If yes, memcpy it into *out
+       - If not, 
+         - return 0 if no bytes available in PMA
+         - else read into the other half of the buffer
+  */   
+  if (out_ep_busy) { return 0; }
+
+  read_from_out_ep();
+
+  if (input_packets.avail_to_read == 0) {
+    return 0;
+  }
+  // now we know there's data available, check to see if we have a full
+  // command worth
+  uint8_t cmd_length = input_packets.buf[input_packets.read_idx];
+  if (input_packets.avail_to_read < (cmd_length + 1)) {
+    // +1 in th above line is to include the length byte
+    return 0; // not a full command worth available
+  }
+
+  // skip over the length byte
+  input_packets.read_idx = (input_packets.read_idx + 1) % INPUT_SIZE;
+
+  // pull the rest of the bytes into the output buffer
+  int i;
+  for (i = 0; i < cmd_length; i++) {
+    out[i] = input_packets.buf[input_packets.read_idx];
+    input_packets.read_idx += 1;
+    if (input_packets.read_idx >= INPUT_SIZE) {
+      input_packets.read_idx = 0;
+    }
+  }
+  input_packets.avail_to_read -= cmd_length + 1; // again, compensating for length byte
+  return cmd_length;
 }
 
 void HandleCDC(usb_dev_t* usb, uint8_t epIndex) {
