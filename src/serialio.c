@@ -54,7 +54,10 @@ void serialio_feed() {
   int count;
   uint8_t read_buffer[64];
   if((count = CDC_ReadBytes(read_buffer)) != 0) {
+    GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1);
     serial_done(read_buffer, count); 
+  } else {
+    GPIO_WriteBit(GPIOB, GPIO_Pin_12, 0);
   }
 }
 
