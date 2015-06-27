@@ -6,6 +6,11 @@
 #include <usb_control.h>
 #include <usb_cdc.h>
 
+typedef struct __attribute__ ((__packed__)) _encoded_packet {
+  uint32_t magic;
+  uint8_t data_bytes;
+  uint16_t sequence;  
+} encoded_packet_t;
 
 #define INPUT_SIZE 128
 
@@ -51,22 +56,34 @@ static void read_from_out_ep() {
   if ((_GetEPRxStatus(2) & EP_RX_MASK) != EP_RX_NAK) { return; }
   
   uint8_t xfer_count = _GetEPRxCount(2);
-  if ((INPUT_SIZE - input_packets.avail_to_read) < xfer_count) {
-    return; // no room
+  if (xfer_count == 0) {
+    return; // ignore zlp
+    _SetEPRxStatus(2, EP_RX_VALID);
   }
 
   uint8_t usb_read[64];
   PMAToUserBufferCopy(usb_read, EP2_RX_ADDR, xfer_count);
-  
   int i;
-  for(i = 0; i < xfer_count; i++) {
-    input_packets.buf[input_packets.write_idx] = usb_read[i];
+
+  encoded_packet_t* hdr = (encoded_packet_t*)&usb_read[0];
+  if (hdr->magic != 0xdeadbeef) {
+    return;
+  }
+  // TODO check sequence number?
+  uint8_t* body = &usb_read[sizeof(encoded_packet_t)];
+
+  if ((INPUT_SIZE - input_packets.avail_to_read) < hdr->data_bytes) {
+    return; // no room
+  }
+
+  for(i = 0; i < hdr->data_bytes; i++) {
+    input_packets.buf[input_packets.write_idx] = body[i];
     input_packets.write_idx += 1;
     if (input_packets.write_idx >= INPUT_SIZE) {
       input_packets.write_idx = 0;
     }
   }
-  input_packets.avail_to_read += xfer_count;
+  input_packets.avail_to_read += hdr->data_bytes;
   _SetEPRxStatus(2, EP_RX_VALID);
 }
 
