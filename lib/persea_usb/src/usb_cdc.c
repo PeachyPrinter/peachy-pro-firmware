@@ -57,8 +57,7 @@ static void read_from_out_ep() {
   
   uint8_t xfer_count = _GetEPRxCount(2);
   if (xfer_count == 0) {
-    return; // ignore zlp
-    _SetEPRxStatus(2, EP_RX_VALID);
+    goto bail;
   }
 
   uint8_t usb_read[64];
@@ -67,12 +66,13 @@ static void read_from_out_ep() {
 
   encoded_packet_t* hdr = (encoded_packet_t*)&usb_read[0];
   if (hdr->magic != 0xdeadbeef) {
-    return;
+    goto bail;
   }
   // TODO check sequence number?
   uint8_t* body = &usb_read[sizeof(encoded_packet_t)];
 
   if ((INPUT_SIZE - input_packets.avail_to_read) < hdr->data_bytes) {
+    // don't goto bail - this is good data, we just don't have room for it
     return; // no room
   }
 
@@ -84,7 +84,10 @@ static void read_from_out_ep() {
     }
   }
   input_packets.avail_to_read += hdr->data_bytes;
+
+bail:
   _SetEPRxStatus(2, EP_RX_VALID);
+  return;
 }
 
 int CDC_ReadBytes(unsigned char* out) {
