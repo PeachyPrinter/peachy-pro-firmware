@@ -47,7 +47,7 @@ const uint8_t DeviceDescriptor[USB_SIZ_DEVICE_DESC] =
   0x02,
   0x01,           /*Index of manufacturer  string*/
   0x02,       /*Index of product string*/
-  0x00,        /*Index of serial number string*/
+  0x03,        /*Index of serial number string*/
   1            /*bNumConfigurations*/
 } ; /* USB_DeviceDescriptor */
 
@@ -152,6 +152,14 @@ const uint8_t ProductConfig[USB_LEN_PRODUCT_DESC] = {
   0x72, 0x0 // "Peachy Printer"
 };
 
+#define USB_LEN_SERIAL_DESC 14
+// intentionally non-const, because it'll get injected by something else, eventually
+uint8_t SerialConfig[USB_LEN_SERIAL_DESC] = {
+  USB_LEN_SERIAL_DESC,
+  DESC_STRING,
+  0x31, 0x0, 0x32, 0x0, 0x33, 0x0, 0x34, 0x0, 0x35, 0x0, 0x36, 0x0 // 123456
+};
+
 /**********************************************************************
  * Control Request Handers 
  */
@@ -187,6 +195,10 @@ static void HandleGetStringDescriptor(uint8_t idx, const uint8_t** to_send, uint
   case 2:
     *to_send = ProductConfig;
     *to_send_size = sizeof(ProductConfig);
+    break;
+  case 3:
+    *to_send = SerialConfig;
+    *to_send_size = sizeof(SerialConfig);
     break;
   }
 }
