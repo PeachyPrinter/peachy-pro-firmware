@@ -160,6 +160,49 @@ uint8_t SerialConfig[USB_LEN_SERIAL_DESC] = {
   0x31, 0x0, 0x32, 0x0, 0x33, 0x0, 0x34, 0x0, 0x35, 0x0, 0x36, 0x0 // 123456
 };
 
+#define USB_LEN_WCID_DESC 0x12
+#define WCID_VENDOR_CODE 0x42
+// see https://github.com/pbatard/libwdi/wiki/WCID-Devices
+const uint8_t WCIDConfig[USB_LEN_WCID_DESC] = {
+  USB_LEN_WCID_DESC,
+  DESC_STRING,
+  // MSFT100 in UTF-16-LE
+  0x4D, 0x00, 0x53, 0x00,
+  0x46, 0x00, 0x54, 0x00,
+  0x31, 0x00, 0x30, 0x00,
+  0x30, 0x00,
+
+  WCID_VENDOR_CODE, // vendor code - made up, just has to match the other WCID descriptor
+  0x00 // padding
+};
+
+#define USB_LEN_WINUSB_DESC 0x28
+const uint8_t WinusbConfig[USB_LEN_WINUSB_DESC] = {
+  0x28, 0x00, 0x00, 0x00, // descriptor length dword
+  0x00, 0x01, // version 1.0
+  0x04, 0x00, // compatibility ID
+  0x01, // number of sections
+
+  // reserved
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 
+
+  0x00, // interface number
+  0x01, // reserved
+
+  // "WINUSB\0\0"
+  0x57, 0x49, 0x4E, 0x55,
+  0x53, 0x42, 0x00, 0x00,
+
+  // subcompatible id
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,
+
+  // reserved
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00
+};
+
 /**********************************************************************
  * Control Request Handers 
  */
@@ -200,6 +243,9 @@ static void HandleGetStringDescriptor(uint8_t idx, const uint8_t** to_send, uint
     *to_send = SerialConfig;
     *to_send_size = sizeof(SerialConfig);
     break;
+  case 0xee:
+    *to_send = WCIDConfig;
+    *to_send_size = sizeof(WCIDConfig);
   }
 }
 
@@ -284,6 +330,27 @@ void DoNothingFunction() {
   for(i = 0; i < 100; i++) ;
 }
 
+static void HandleVendorRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  const uint8_t* to_send;
+  uint8_t to_send_size = 0;
+
+  if(setup->bmRequestType == 0xC0 && setup->bRequest == WCID_VENDOR_CODE && setup->wIndex == 0x4) {
+    // Asking for the Winusb descriptor
+    to_send = WinusbConfig;
+    to_send_size = sizeof(WinusbConfig);
+  }
+
+  if (to_send_size) {
+    if (to_send_size > setup->wLength) {
+      to_send_size = setup->wLength;
+    }
+    ep0_output.buf = to_send;
+    ep0_output.count = to_send_size;
+    ep0_output.send_zlp = 0;
+  }
+
+}
+
 static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   switch(setup->bmRequestType & 0x80) {
   case REQ_GET:
@@ -360,6 +427,9 @@ static void HandleSetupPacket(usb_dev_t* usb) {
     break;
   case REQUEST_TYPE_CLASS:
     HandleClassRequest(usb, &setup, rx_buffer);
+    break;
+  case REQUEST_TYPE_VENDOR:
+    HandleVendorRequest(usb, &setup, rx_buffer);
     break;
   default:
     DoNothingFunction();
