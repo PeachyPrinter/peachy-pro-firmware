@@ -126,7 +126,7 @@ const uint8_t CdcConfig[USB_CDC_CONFIG_DESC_SIZ] =
 const uint8_t LangConfig[USB_LEN_LANG_DESC] = {
   USB_LEN_LANG_DESC,
   DESC_STRING,
-  0x04, 0x09 // english
+  0x09, 0x04 // english
 };
 
 /* Note: to use Python to encode a UTF-16-LE string descriptor, use:
@@ -334,7 +334,7 @@ static void HandleVendorRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t*
   const uint8_t* to_send;
   uint8_t to_send_size = 0;
 
-  if(setup->bmRequestType == 0xC0 && setup->bRequest == WCID_VENDOR_CODE && setup->wIndex == 0x4) {
+  if((setup->bmRequestType & 0xC0) == 0xC0 && setup->bRequest == WCID_VENDOR_CODE && setup->wIndex == 0x4) {
     // Asking for the Winusb descriptor
     to_send = WinusbConfig;
     to_send_size = sizeof(WinusbConfig);
