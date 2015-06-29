@@ -45,8 +45,8 @@ const uint8_t DeviceDescriptor[USB_SIZ_DEVICE_DESC] =
   HIBYTE(USBD_PID),           /*idVendor*/
   0x00,                       /*bcdDevice rel. 2.00*/
   0x02,
-  0x00,           /*Index of manufacturer  string*/
-  0x00,       /*Index of product string*/
+  0x01,           /*Index of manufacturer  string*/
+  0x02,       /*Index of product string*/
   0x00,        /*Index of serial number string*/
   1            /*bNumConfigurations*/
 } ; /* USB_DeviceDescriptor */
@@ -122,6 +122,36 @@ const uint8_t CdcConfig[USB_CDC_CONFIG_DESC_SIZ] =
   0x00                               /* bInterval: ignore for Bulk transfer */
 } ;
 
+#define USB_LEN_LANG_DESC 4
+const uint8_t LangConfig[USB_LEN_LANG_DESC] = {
+  USB_LEN_LANG_DESC,
+  DESC_STRING,
+  0x04, 0x09 // english
+};
+
+/* Note: to use Python to encode a UTF-16-LE string descriptor, use:
+
+', '.join(str(ord(i)) for i in x.encode('utf-16-le'))
+
+*/
+
+#define USB_LEN_MANUF_DESC 14
+const uint8_t ManufConfig[USB_LEN_MANUF_DESC] = {
+  USB_LEN_MANUF_DESC,
+  DESC_STRING,
+  0x50, 0x0, 0x65, 0x0, 0x61, 0x0, 0x63, 0x0, 0x68, 0x0, 0x79, 0x0
+  // "Peachy" in UTF-16-LE
+};
+
+#define USB_LEN_PRODUCT_DESC 30
+const uint8_t ProductConfig[USB_LEN_PRODUCT_DESC] = {
+  USB_LEN_PRODUCT_DESC,
+  DESC_STRING,
+  0x50, 0x0, 0x65, 0x0, 0x61, 0x0, 0x63, 0x0, 0x68, 0x0, 0x79, 0x0, 0x20, 
+  0x0, 0x50, 0x0, 0x72, 0x0, 0x69, 0x0, 0x6e, 0x0, 0x74, 0x0, 0x65, 0x0, 
+  0x72, 0x0 // "Peachy Printer"
+};
+
 /**********************************************************************
  * Control Request Handers 
  */
@@ -143,6 +173,23 @@ void WriteEP0Status(void) {
   _SetEPTxStatus(0, EP_TX_VALID);
 }
 volatile usb_setup_req_t last_setup;
+
+static void HandleGetStringDescriptor(uint8_t idx, const uint8_t** to_send, uint8_t* to_send_size) {
+  switch(idx) {
+  case 0:
+    *to_send = LangConfig;
+    *to_send_size = sizeof(LangConfig);
+    break;
+  case 1:
+    *to_send = ManufConfig;
+    *to_send_size = sizeof(ManufConfig);
+    break;
+  case 2:
+    *to_send = ProductConfig;
+    *to_send_size = sizeof(ProductConfig);
+    break;
+  }
+}
 
 static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
   const uint8_t* to_send;
@@ -167,6 +214,10 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
   case DESC_CONFIGURATION:
     to_send = CdcConfig;
     to_send_size = sizeof(CdcConfig);
+    break;
+  case DESC_STRING:
+    HandleGetStringDescriptor(LOBYTE(setup->wValue), &to_send, &to_send_size);
+    break;
   default:
     break;
   }
