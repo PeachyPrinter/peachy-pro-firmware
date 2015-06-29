@@ -203,10 +203,12 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
   _ToggleDTOG_TX(0);
 
   switch(descriptor) {
-  case DESC_DEVICE_QUALIFIER:
+/* Only needed if it's a high speed device */
+/*  case DESC_DEVICE_QUALIFIER:
     to_send = DeviceQualifier;
     to_send_size = sizeof(DeviceQualifier);
     break;
+*/
   case DESC_DEVICE:
     to_send = DeviceDescriptor;
     to_send_size = sizeof(DeviceDescriptor);
