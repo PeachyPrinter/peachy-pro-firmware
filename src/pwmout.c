@@ -83,6 +83,22 @@ void initialize_pwm(void) {
   // Laser power
   TIM_OC1Init(TIM3, &oc);
   TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+  // Laser enable
+  gp.GPIO_Pin = GPIO_Pin_5;
+  gp.GPIO_Mode = GPIO_Mode_OUT;
+  gp.GPIO_Speed = GPIO_Speed_2MHz;
+  gp.GPIO_OType = GPIO_OType_PP;
+  gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(GPIOB, &gp);
+}
+
+void laser_on(void) {
+  GPIO_WriteBit(GPIOB, GPIO_Pin_5, 1);
+}
+
+void laser_off(void) {
+  GPIO_WriteBit(GPIOB, GPIO_Pin_5, 0);
 }
 
 void update_pwm(void) {
@@ -104,6 +120,12 @@ void update_pwm(void) {
     // Laser Power
     TIM_SetCompare1(TIM3, laserpower & 0xFF);
 
+    if (laserpower > 0) {
+      laser_on();
+    } else {
+      laser_off();
+    }
+
     move_start = (move_start + 1) % MOVE_SIZE;
     move_count--;
   } else {
@@ -111,5 +133,6 @@ void update_pwm(void) {
     // leave the mirrors in the same place. We're likely going to
     // continue from there.
     TIM_SetCompare1(TIM3, 0);
+    laser_off();
   }
 }
