@@ -39,7 +39,7 @@ definitions and discarding all of the code from ST's USB driver.
 
 /* Data Structures -----------------------------------------------------------*/
 typedef struct {
-
+  uint8_t halted;
 } endpoint_t;
 
 typedef enum { DEFAULT = 0, CHANGE_ADDRESS, ADDRESS, CONFIGURED } usb_state_t;

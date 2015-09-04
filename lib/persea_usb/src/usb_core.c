@@ -8,7 +8,11 @@
 #include <usb_control.h>
 #include <usb_cdc.h>
 
-static usb_dev_t USB;
+static usb_dev_t USB = {
+  { {0}, {0}, {0}, {0} },
+  { {0}, {0}, {0}, {0} },
+  0, 0
+};
 
 static void CRS_Config(void)
 {

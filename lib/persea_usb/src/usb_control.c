@@ -351,6 +351,32 @@ static void HandleVendorRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t*
 
 }
 
+static void HandleEndpointRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  switch(setup->bmRequestType & 0x80) {
+  case REQ_GET:
+    switch(setup->bRequest) {
+    case REQ_GET_STATUS:
+      // send back 0x00 0x00 if not halted or 0x00 0x01 if halted
+      break;
+    }
+    break;
+  case REQ_SET:
+    switch(setup->bRequest) {
+    case REQ_SET_FEATURE:
+      if (setup->wValue == ENDPOINT_HALT_FEATURE) {
+        // halt endpoint in wIndex
+      }
+      break;
+    case REQ_CLEAR_FEATURE:
+      if (setup->wValue == ENDPOINT_HALT_FEATURE) {
+        // unhalt endpoint in wIndex
+      }
+      break;
+    }
+    break;
+  }
+}
+
 static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   switch(setup->bmRequestType & 0x80) {
   case REQ_GET:
@@ -430,6 +456,9 @@ static void HandleSetupPacket(usb_dev_t* usb) {
     break;
   case REQUEST_TYPE_VENDOR:
     HandleVendorRequest(usb, &setup, rx_buffer);
+    break;
+  case REQUEST_TYPE_ENDPOINT:
+    HandleEndpointRequest(usb, &setup, rx_buffer);
     break;
   default:
     DoNothingFunction();
