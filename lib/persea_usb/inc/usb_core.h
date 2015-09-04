@@ -45,8 +45,7 @@ typedef struct {
 typedef enum { DEFAULT = 0, CHANGE_ADDRESS, ADDRESS, CONFIGURED } usb_state_t;
 
 typedef struct {
-  endpoint_t in_ep[4];
-  endpoint_t out_ep[4];
+  endpoint_t ep[4];
   usb_state_t state;
   uint8_t address;
 } usb_dev_t;
@@ -91,12 +90,20 @@ typedef struct {
 #define REQUEST_TYPE_CLASS (0x20)
 #define REQUEST_TYPE_VENDOR (0x40)
 
+#define RECIPIENT_MASK (0x1f)
+#define RECIPIENT_ENDPOINT (0x02)
+
 #define REQ_GET (0x80)
 #define REQ_SET (0x00)
 
 #define REQ_GET_DESCRIPTOR (0x06)
+#define REQ_GET_STATUS (0x00)
+#define REQ_SET_FEATURE (0x03)
+#define REQ_CLEAR_FEATURE (0x01)
 #define REQ_SET_ADDRESS (0x05)
 #define REQ_SET_CONFIGURATION (0x09)
+
+#define FEATURE_ENDPOINT_HALT (0x00)
 
 /* From Table 9-5 in the USB 2.0 Spec, pdf page 279, doc page 251 */
 #define DESC_DEVICE 1

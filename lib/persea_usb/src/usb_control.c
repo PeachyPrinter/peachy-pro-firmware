@@ -292,6 +292,29 @@ static void HandleGetDescriptor(usb_setup_req_t* setup, uint8_t* rx_buffer) {
   }
 }
 
+static void HandleEPGetStatus(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
+  static const uint8_t status_ok[2] = { 0x00, 0x00 };
+  static const uint8_t status_halted[2] = { 0x00, 0x01 };
+
+  uint8_t endpoint = setup->wIndex & 0x7F;
+  ep0_output.buf = status_halted;
+  if ((endpoint < 4) && (!usb->ep[endpoint].halted)) {
+    ep0_output.buf = status_ok;
+  }
+  ep0_output.count = 2;
+  ep0_output.send_zlp = 0;
+}
+
+static void HandleEPSetFeature(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer, uint8_t should_set) {
+  if (setup->wValue == FEATURE_ENDPOINT_HALT) {
+    uint8_t endpoint = setup->wIndex & 0x7F; // ignore direction bit
+    if (endpoint < 4) {
+      usb->ep[endpoint].halted = should_set;
+    }
+    WriteEP0Status();
+  }
+}
+
 static void HandleSetAddress(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   WriteEP0Status();
 
@@ -351,38 +374,17 @@ static void HandleVendorRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t*
 
 }
 
-static void HandleEndpointRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
-  switch(setup->bmRequestType & 0x80) {
-  case REQ_GET:
-    switch(setup->bRequest) {
-    case REQ_GET_STATUS:
-      // send back 0x00 0x00 if not halted or 0x00 0x01 if halted
-      break;
-    }
-    break;
-  case REQ_SET:
-    switch(setup->bRequest) {
-    case REQ_SET_FEATURE:
-      if (setup->wValue == ENDPOINT_HALT_FEATURE) {
-        // halt endpoint in wIndex
-      }
-      break;
-    case REQ_CLEAR_FEATURE:
-      if (setup->wValue == ENDPOINT_HALT_FEATURE) {
-        // unhalt endpoint in wIndex
-      }
-      break;
-    }
-    break;
-  }
-}
-
 static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_t* rx_buffer) {
   switch(setup->bmRequestType & 0x80) {
   case REQ_GET:
     switch(setup->bRequest) {
     case REQ_GET_DESCRIPTOR:
       HandleGetDescriptor(setup, rx_buffer);
+      break;
+    case REQ_GET_STATUS:
+      if ((setup->bmRequestType & RECIPIENT_MASK) == RECIPIENT_ENDPOINT) {
+        HandleEPGetStatus(usb, setup, rx_buffer);
+      }
       break;
     }
     /* The Status packet is going to be DTOG=1 */
@@ -395,6 +397,16 @@ static void HandleStandardRequest(usb_dev_t* usb, usb_setup_req_t* setup, uint8_
       break;
     case REQ_SET_CONFIGURATION:
       HandleSetConfiguration(usb, setup, rx_buffer);
+      break;
+    case REQ_SET_FEATURE:
+      if ((setup->bmRequestType & RECIPIENT_MASK) == RECIPIENT_ENDPOINT) {
+        HandleEPSetFeature(usb, setup, rx_buffer, 1);
+      }
+      break;
+    case REQ_CLEAR_FEATURE:
+      if ((setup->bmRequestType & RECIPIENT_MASK) == RECIPIENT_ENDPOINT) {
+        HandleEPSetFeature(usb, setup, rx_buffer, 0);
+      }
       break;
     default: 
       DoNothingFunction();
@@ -456,9 +468,6 @@ static void HandleSetupPacket(usb_dev_t* usb) {
     break;
   case REQUEST_TYPE_VENDOR:
     HandleVendorRequest(usb, &setup, rx_buffer);
-    break;
-  case REQUEST_TYPE_ENDPOINT:
-    HandleEndpointRequest(usb, &setup, rx_buffer);
     break;
   default:
     DoNothingFunction();
