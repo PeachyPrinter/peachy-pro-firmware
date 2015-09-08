@@ -152,13 +152,42 @@ const uint8_t ProductConfig[USB_LEN_PRODUCT_DESC] = {
   0x72, 0x0 // "Peachy Printer"
 };
 
-#define USB_LEN_SERIAL_DESC 14
+#define USB_LEN_SERIAL_DESC 18
 // intentionally non-const, because it'll get injected by something else, eventually
 uint8_t SerialConfig[USB_LEN_SERIAL_DESC] = {
   USB_LEN_SERIAL_DESC,
   DESC_STRING,
-  0x31, 0x0, 0x32, 0x0, 0x33, 0x0, 0x34, 0x0, 0x35, 0x0, 0x36, 0x0 // 123456
+  0x31, 0x0, 0x32, 0x0, 0x33, 0x0, 0x34, 0x0, 0x35, 0x0, 0x36, 0x0, 0x37, 0x0, 0x38, 0x0 // 12345678
 };
+
+/** This will write 4 bytes into buf, representing b in hex */
+static void byte_to_unicode(uint8_t b, uint8_t* buf) {
+  uint8_t upper = (b & 0xf0) >> 4;
+  uint8_t lower = (b & 0x0f);
+
+  if (upper < 10) {
+    buf[0] = 0x30 + upper;
+  } else {
+    buf[0] = 0x41 + (upper - 10);
+  }
+
+  buf[1] = 0;
+
+  if (lower < 10) {
+    buf[2] = 0x30 + lower;
+  } else {
+    buf[2] = 0x41 + (lower - 10);
+  }
+
+  buf[3] = 0;
+}
+
+void USB_SetSerial(uint32_t serial_number) {
+  byte_to_unicode((serial_number & 0xff000000) >> 24, &SerialConfig[2]);
+  byte_to_unicode((serial_number & 0x00ff0000) >> 16, &SerialConfig[6]);
+  byte_to_unicode((serial_number & 0x0000ff00) >> 8, &SerialConfig[10]);
+  byte_to_unicode((serial_number & 0x000000ff), &SerialConfig[14]);
+}
 
 #define USB_LEN_WCID_DESC 0x12
 #define WCID_VENDOR_CODE 0x42

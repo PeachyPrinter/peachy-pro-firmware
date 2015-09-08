@@ -27,4 +27,6 @@ typedef enum {
 
 void serialio_feed(void);
 void serialio_write(unsigned char* buffer, uint8_t len);
+void set_identify_serial_number(uint32_t serial_number);
+
 #endif

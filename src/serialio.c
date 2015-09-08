@@ -122,6 +122,34 @@ static bool constant_string(pb_ostream_t* stream, const pb_field_t* field,
   return pb_encode_string(stream, (uint8_t*)str, strlen(str));
 }
 
+static char g_serial_number[9];
+
+/** Writes two ascii characters into buf to represent b in hex */
+void hex_byte_to_chars(uint8_t b, char* buf) {
+  uint8_t upper = (b & 0xf0) >> 4;
+  uint8_t lower = (b & 0x0f);
+
+  if (upper < 10) {
+    buf[0] = 0x30 + upper;
+  } else {
+    buf[0] = 0x41 + (upper - 10);
+  }
+
+  if (lower < 10) {
+    buf[1] = 0x30 + lower;
+  } else {
+    buf[1] = 0x41 + (lower - 10);
+  }
+}
+
+void set_identify_serial_number(uint32_t serial_number) {
+  hex_byte_to_chars((serial_number & 0xff000000) >> 24, &g_serial_number[0]);
+  hex_byte_to_chars((serial_number & 0x00ff0000) >> 16, &g_serial_number[2]);
+  hex_byte_to_chars((serial_number & 0x0000ff00) >> 8, &g_serial_number[4]);
+  hex_byte_to_chars((serial_number & 0x000000ff), &g_serial_number[6]);  
+  g_serial_number[8] = 0;
+}
+
 void handle_identify(unsigned char* buffer, int len) {
   /* Identify message has nothing interesting in it to read */
   pb_ostream_t stream;
@@ -129,7 +157,7 @@ void handle_identify(unsigned char* buffer, int len) {
   stream = pb_ostream_from_buffer(outbuf, 64);
   char* swrev = VERSION;
   char* hwrev = "hwrev 3456";
-  char* sn = "unodos";
+  char* sn = g_serial_number;
 
   uint8_t type = IAM;
   pb_write(&stream, &type, 1);

@@ -499,6 +499,8 @@ void EP_Config(uint8_t ep, uint16_t dir, uint16_t type, uint32_t addr);
 void UserToPMABufferCopy(const uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes);
 void PMAToUserBufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes);
 
+void USB_SetSerial(uint32_t serial_number);
+
 #endif /* __USB_CORE_H__ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

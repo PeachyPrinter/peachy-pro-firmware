@@ -29,8 +29,22 @@ void SysTick_Handler(void) {
   update_pwm();
 }
 
+void init_serial_number() {
+  uint32_t* serial_base = (uint32_t*)0x1FFFF7AC;
+  // 96-bit serial number = 4 words
+  uint32_t part1 = *serial_base;
+  uint32_t part2 = *(serial_base+1);
+  uint32_t part3 = *(serial_base+2);
+  uint32_t part4 = *(serial_base+3);
+  
+  uint32_t hashed = part1 ^ part2 ^ part3 ^ part4;
+  USB_SetSerial(hashed);
+  set_identify_serial_number(hashed);
+}
+
 int main(void)
 {
+  init_serial_number();
   USB_Start();
   
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
