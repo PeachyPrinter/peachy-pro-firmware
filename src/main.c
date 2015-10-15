@@ -12,8 +12,10 @@
 #include <i2c.h>
 
 extern volatile uint32_t g_dripcount;
+extern volatile uint32_t g_dripghosts;
 
 static volatile uint32_t tick = 0;
+bool DEBUG=true;
 
 uint8_t move_start = 0;
 uint8_t move_count = 0;
@@ -59,6 +61,7 @@ int main(void)
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOA, &gp);
 
+  //LEDs for debug (not sure pin 12)
   gp.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
   gp.GPIO_Mode = GPIO_Mode_OUT;
   gp.GPIO_Speed = GPIO_Speed_50MHz;
@@ -66,14 +69,23 @@ int main(void)
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOB, &gp);
 
+  //Setup PB0 as laser override pin
+  gp.GPIO_Pin = GPIO_Pin_0 ;
+  gp.GPIO_Mode = GPIO_Mode_IN;
+  gp.GPIO_Speed = GPIO_Speed_50MHz;
+  gp.GPIO_OType = GPIO_OType_OD;
+  gp.GPIO_PuPd = GPIO_PuPd_UP;
+  GPIO_Init(GPIOB, &gp);
+
   i2c_init();
   initialize_pwm();
   initialize_dripper();
+  initialize_debouncer();
 
-  GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1);
-  GPIO_WriteBit(GPIOB, GPIO_Pin_13, 1);
-  GPIO_WriteBit(GPIOB, GPIO_Pin_14, 1);
-  GPIO_WriteBit(GPIOB, GPIO_Pin_15, 1);
+  GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1); //NC
+  GPIO_WriteBit(GPIOB, GPIO_Pin_13, 0); //Inside corner
+  GPIO_WriteBit(GPIOB, GPIO_Pin_14, 0); //Nearest coil header
+  GPIO_WriteBit(GPIOB, GPIO_Pin_15, 1); //Corner
   
   SysTick_Config(SystemCoreClock / 2000);
 
