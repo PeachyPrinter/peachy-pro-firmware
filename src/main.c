@@ -6,6 +6,7 @@
 #include "serialio.h"
 #include "pwmout.h"
 #include "dripper.h"
+#include "reprog.h"
 
 #include <usb_core.h>
 #include <usb_cdc.h>
@@ -15,7 +16,7 @@ extern volatile uint32_t g_dripcount;
 extern volatile uint32_t g_dripghosts;
 
 static volatile uint32_t tick = 0;
-bool DEBUG=true;
+bool DEBUG=1;
 
 uint8_t move_start = 0;
 uint8_t move_count = 0;

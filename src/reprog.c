@@ -12,7 +12,8 @@ volatile int delay;
 
 void wipeFlash(){
   unlockFlash();
-  FLASH_EraseAllPages();
+  FLASH_ErasePage(0x00000000);
+  FLASH_ErasePage(0x00000001);
   lockFlash();
   reboot();
 }
@@ -32,5 +33,12 @@ void lockFlash(){
 }
 
 void reboot(){
+	__disable_irq(); //Turn off all interrupts so we can do this quickly
+	delay=1; //Assign a variable as hacky delay
 	NVIC_SystemReset();
+	__enable_irq();
+
+
+	//__enable_irq();
 }
+

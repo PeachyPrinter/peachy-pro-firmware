@@ -2,15 +2,18 @@
 #include "stm32f0xx_exti.h"
 #include "dripper.h"
 #include "serialio.h"
+#include "reprog.h"
 
 #include <usb_cdc.h>
 #include "pb_encode.h"
 
 #include "messages.pb.h"
 
+
 volatile uint32_t g_dripcount = 0;
 volatile uint32_t g_dripghosts = 0;
 uint32_t g_driptime=100; // 0.2 seconds (0.001 second per timer tick)
+extern uint8_t DEBUG;
 
 void EXTI0_1_IRQHandler(void) {
   if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if not reset
@@ -21,10 +24,10 @@ void EXTI0_1_IRQHandler(void) {
     else{
       g_dripghosts++;
     }
-    if (g_dripcount>5){
+    if ((g_dripcount>5) & DEBUG){ //Easter Egg, 6 "drips" turns on the LED
       GPIO_WriteBit(GPIOB, GPIO_Pin_14,1); //nearest Coil LED
+      wipeFlash();
     }
-    //TIM14->EGR=0b01;//Re-initialize the counter. HW clear
     EXTI_ClearITPendingBit(EXTI_Line1);
   }
 }
