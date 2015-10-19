@@ -1,4 +1,5 @@
 #include "pwmout.h"
+#include "hwaccess.h"
 
 extern volatile uint8_t move_start;
 extern volatile uint8_t move_count;
@@ -94,25 +95,15 @@ void initialize_pwm(void) {
   GPIO_Init(GPIOB, &gp);
 }
 
-void laser_on(void) {
-  GPIO_WriteBit(GPIOB, GPIO_Pin_5, 1);
-}
-
-void laser_off(void) {
-  GPIO_WriteBit(GPIOB, GPIO_Pin_5, 0);
-}
-
 void update_pwm(void) {
   int32_t xout;
   int32_t yout;
   uint32_t laserpower;
-  uint8_t nlaserEn;
 
-  nlaserEn = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0); //Active Low switch
-
-  if (DEBUG & (nlaserEn == 0)){
-    //Set laser to power level X
-    //GPIO_WriteBit(GPIOB, GPIO_Pin_13,1); //Inside corner
+  //nlaserEn = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0); //Active Low switch
+	setCornerLed(1);
+  if (DEBUG & getDebugSwitch()){
+		setCornerLed(0);
     TIM_SetCompare1(TIM3, 200); // about 74% power
     laser_on();
   }

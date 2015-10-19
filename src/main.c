@@ -7,6 +7,7 @@
 #include "pwmout.h"
 #include "dripper.h"
 #include "reprog.h"
+#include "hwaccess.h"
 
 #include <usb_core.h>
 #include <usb_cdc.h>
@@ -48,45 +49,23 @@ void init_serial_number() {
 int main(void)
 {
   init_serial_number();
-  USB_Start();
+	USB_Start();
   
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
-  // Set Up PA4 and PA5 as debug pins
-  GPIO_InitTypeDef gp;
-  gp.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
-  gp.GPIO_Mode = GPIO_Mode_OUT;
-  gp.GPIO_Speed = GPIO_Speed_50MHz;
-  gp.GPIO_OType = GPIO_OType_PP;
-  gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOA, &gp);
-
-  //LEDs for debug (not sure pin 12)
-  gp.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
-  gp.GPIO_Mode = GPIO_Mode_OUT;
-  gp.GPIO_Speed = GPIO_Speed_50MHz;
-  gp.GPIO_OType = GPIO_OType_PP;
-  gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOB, &gp);
-
-  //Setup PB0 as laser override pin
-  gp.GPIO_Pin = GPIO_Pin_0 ;
-  gp.GPIO_Mode = GPIO_Mode_IN;
-  gp.GPIO_Speed = GPIO_Speed_50MHz;
-  gp.GPIO_OType = GPIO_OType_OD;
-  gp.GPIO_PuPd = GPIO_PuPd_UP;
-  GPIO_Init(GPIOB, &gp);
+	setupJP5();
+	setupLeds();
 
   i2c_init();
   initialize_pwm();
   initialize_dripper();
   initialize_debouncer();
 
-  GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1); //NC
-  GPIO_WriteBit(GPIOB, GPIO_Pin_13, 0); //Inside corner
-  GPIO_WriteBit(GPIOB, GPIO_Pin_14, 0); //Nearest coil header
-  GPIO_WriteBit(GPIOB, GPIO_Pin_15, 1); //Corner
+  //GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1); //NC
+	setCornerLed(1);
+	setInLed(0);
+	setCoilLed(0);
   
   SysTick_Config(SystemCoreClock / 2000);
 
