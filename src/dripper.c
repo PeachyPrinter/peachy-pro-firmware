@@ -1,5 +1,6 @@
 #include "stm32f0xx_gpio.h"
 #include "stm32f0xx_exti.h"
+#include "stm32f0xx_conf.h"
 #include "dripper.h"
 #include "serialio.h"
 #include "reprog.h"
@@ -14,7 +15,7 @@
 volatile uint32_t g_dripcount = 0;
 volatile uint32_t g_dripghosts = 0;
 uint32_t g_driptime=100; // 100 milliseconds (~0.001 second per timer tick)
-extern uint8_t DEBUG;
+extern uint8_t g_debug;
 
 void EXTI0_1_IRQHandler(void) {
   if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if not reset
@@ -25,7 +26,7 @@ void EXTI0_1_IRQHandler(void) {
     else{
       g_dripghosts++;
     }
-    if ((g_dripcount>5) & DEBUG){ //DEBUG, 6 "drips" turns on the LED for check if it works
+    if ((g_dripcount>5) & g_debug){ //g_debug, 6 "drips" turns on the LED for check if it works
 			setCoilLed(1);
 			//wipeFlash(); //tick...tick...boom
     }

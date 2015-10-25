@@ -1,14 +1,13 @@
 #include "reprog.h"
-//#include <unistd.h>
+#include "hwaccess.h"
 #include "stm32f0xx_conf.h"
 #include "stm32f0xx_gpio.h"
 #include <usb_core.h>
 #include <usb_cdc.h>
 #include "pb_encode.h"
-
 #include "messages.pb.h"
 
-extern bool DEBUG;
+extern bool g_debug;
 
 volatile int delay;
 //uint32_t KEY1=0x45670123;
@@ -16,9 +15,9 @@ volatile int delay;
 
 void wipeFlash(){
   unlockFlash();
+	setCoilLed(1); //Flash the led as it reboots
   FLASH_ErasePage(0x00000000);
   FLASH_ErasePage(0x00000001);
-  lockFlash();
   reboot();
 }
 
@@ -30,21 +29,20 @@ void unlockFlash(){
 }
 
 void reboot(){
-  //uint32_t i;
-  uint8_t button;
-	if (DEBUG){
-		button = getDebugSwitch();
-		while (!button){
-			button = getDebugSwitch();
-		}
-	}
+  //uint8_t button;
+	//if (g_debug){
+	//	button = getDebugSwitch();
+	//	while (!button){
+	//		button = getDebugSwitch();
+	//	}
+	//}
 
 	NVIC_SystemReset();
-	//This line should never be hit
-	__enable_irq();
+	//bye bye firmware
 }
 
-#ifdef _DEBUG
+#ifdef _g_debug
+//This is debug code. Don't judge
 void enableUsb(){
   //This was easier than finding the built in function
   //I don't even think it exists tbh...

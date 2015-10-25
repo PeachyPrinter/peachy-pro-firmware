@@ -22,7 +22,9 @@ typedef enum {
   MOVE_TO_DRIP_COUNT = 5,
   MEASURE = 6,
   IDENTIFY = 7,
-  IAM = 8
+  IAM = 8,
+	DEBUG = 9,
+	REBOOT = 10
 } message_types_t;
 
 void serialio_feed(void);

@@ -4,7 +4,7 @@
 extern volatile uint8_t move_start;
 extern volatile uint8_t move_count;
 extern Move move_buffer[MOVE_SIZE];
-extern bool DEBUG;
+extern bool g_debug;
 
 void initialize_pwm(void) {
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
@@ -102,7 +102,7 @@ void update_pwm(void) {
 
   //nlaserEn = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0); //Active Low switch
 	setCornerLed(1);
-  if (DEBUG & getDebugSwitch()){
+  if (g_debug & getDebugSwitch()){
 		setCornerLed(0);
     TIM_SetCompare1(TIM3, 200); // about 74% power
     laser_on();

@@ -8,11 +8,13 @@
 #include <clock.h>
 #include "pwmout.h"
 #include "version.h"
+#include "reprog.h"
 
 extern volatile uint32_t g_dripcount;
 extern volatile uint8_t move_start;
 extern volatile uint8_t move_count;
 extern Move move_buffer[MOVE_SIZE];
+extern bool g_debug;
 
 #define HEADER 0x40
 #define FOOTER 0x41
@@ -24,6 +26,8 @@ void handle_ack(unsigned char* buffer, int len);
 void handle_measure(unsigned char* buffer, int len);
 void handle_set_drip_count(unsigned char* buffer, int len);
 void handle_identify(unsigned char* buffer, int len);
+void handle_debug(unsigned char* buffer, int len);
+void handle_reboot(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
@@ -32,6 +36,8 @@ static type_callback_map_t callbacks[] = {
   { MEASURE, &handle_measure },
   { SET_DRIP_COUNT, &handle_set_drip_count },
   { IDENTIFY, &handle_identify },
+	{ DEBUG, &handle_debug },
+	{ REBOOT, &handle_reboot },
   { 0, 0 }
 };
 
@@ -63,6 +69,28 @@ void serialio_feed() {
 
 /*****************************************/
 /* Callbacks for handling messages */
+
+void handle_debug(unsigned char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+  setDebug message;
+  status = pb_decode(&stream, setDebug_fields, &message);
+  if (status) {
+    g_debug = message.debug;
+  }
+}
+
+void handle_reboot(unsigned char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+  plzReboot message;
+  status = pb_decode(&stream, setDebug_fields, &message);
+  if (status) {
+		if (message.reboot == 1){
+			reboot();
+		}
+  }
+}
 
 void handle_move(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);

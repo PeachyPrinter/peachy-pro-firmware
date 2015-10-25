@@ -6,6 +6,8 @@ void setJP5_PA5(uint8_t);
 void setJP5_PA6(uint8_t);
 void setJP5_PA7(uint8_t);
 uint8_t getDebugSwitch(void);
+uint16_t getADC1();
+void setupADC();
 
 void setupJP6(void);
 

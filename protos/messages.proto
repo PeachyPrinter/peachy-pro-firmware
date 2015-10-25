@@ -20,6 +20,14 @@ message MoveToDripCount {
 message Identify {
 }
 
+message setDebug{
+	optional uint32 debug = 1;
+}
+
+message plzReboot{
+	optional uint32 reboot = 1;
+}
+
 message IAm {
   required string swrev = 1;
   required string hwrev = 2;
