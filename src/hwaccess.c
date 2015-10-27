@@ -5,6 +5,7 @@
 #include "hwaccess.h"
 
 uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
+uint16_t g_adcCal;
 
 void setupJP6(){
 	//Mapping Tables:
@@ -34,19 +35,18 @@ void setupJP6(){
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOA, &gp);
 
-  setupADC();
+  //setupADC();
+  manualsetupADC();
 }
-
-void setupADC(){
+void manualsetupADC(){
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1,ENABLE);//The ADC1 is connected the APB2 peripheral bus
+  RCC_HSI14Cmd(ENABLE);
   RCC_ADCCLKConfig(RCC_ADCCLK_HSI14);
+  RCC_HSI14ADCRequestCmd(ENABLE);
 
-  ADC_DeInit(ADC1);
+  g_adcCal=ADC_GetCalibrationFactor(ADC1);
 
-  ADC_DiscModeCmd(ADC1,ENABLE);
-  ADC_OverrunModeCmd(ADC1,DISABLE);
-  ADC_ContinuousModeCmd(ADC1,DISABLE);
   ADC_TempSensorCmd(ENABLE);//Enable it up here, so by the time we want to use it, it should be stable
 
   ADC_InitTypeDef adc;
@@ -56,7 +56,41 @@ void setupADC(){
   adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
   adc.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; //Sample on the rising edge
   adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
-  ADC_Init(ADC1 , &adc);
+  ADC_StructInit(&adc);
+
+  //ADC_ContinuousModeCmd(ADC1,DISABLE);
+
+  ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
+  ADC_Cmd(ADC1,ENABLE);
+}
+
+void setupADC(){
+
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1,ENABLE);//The ADC1 is connected the APB2 peripheral bus
+  RCC_HSI14Cmd(ENABLE);
+  RCC_HSI14ADCRequestCmd(ENABLE);
+  RCC_ADCCLKConfig(RCC_ADCCLK_HSI14);
+
+  ADC_DeInit(ADC1);
+
+  //ADC_AutoPowerOffCmd(DISABLE);
+  ADC_DiscModeCmd(ADC1,ENABLE);
+  ADC_OverrunModeCmd(ADC1,DISABLE);
+  ADC_ContinuousModeCmd(ADC1,DISABLE);
+  ADC_TempSensorCmd(ENABLE);//Enable it up here, so by the time we want to use it, it should be stable
+  ADC_VrefintCmd(ENABLE);
+
+  ADC_InitTypeDef adc;
+  adc.ADC_ContinuousConvMode = DISABLE; //For testing initially.
+  adc.ADC_Resolution = ADC_Resolution_12b; //take all the bits since accuracy > speed
+  adc.ADC_DataAlign = ADC_DataAlign_Right; // 4095-0 for uint16_t
+  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
+  adc.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; //Sample on the rising edge
+  adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
+  ADC_StructInit(&adc);
+  //ADC_Init(ADC1 , &adc);
+
+
 
   DMA_DeInit(DMA1_Channel1);
   /*RCC_AHBPeriphClockCmd(RCC_AHBENR_DMA1EN,DISABLE); //Enable Clock to DMA
@@ -89,9 +123,10 @@ void setupADC(){
     ADC_SampleTime_239_5Cycles: Sample time equal to 239.5 cycles
    */
   //Add any channels you like, but make sure you update the DEFINE of ADC_CHANS in the header
-  ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_239_5Cycles); // pin in JP5
+  //ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_239_5Cycles); // pin in JP5
 
   ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
+  //ADC_ChannelConfig(ADC1,ADC_Channel_17,ADC_SampleTime_239_5Cycles); //Vref sensor tied to chan 16
 
 	//Calibrate and GO
 	//adcCal();
@@ -161,14 +196,9 @@ void setupLeds(){
   GPIO_Init(GPIOB, &gp);
 }
 
-uint16_t getADC1(){
+uint16_t getADCVal(){
   //Start conversion, wait for it to finish, then clear the flags and return the value we got
-  //One question is how do we get more than one ADC channel....
-  //Guess... each sample grab rotates through the channels.
-
-  //NOTE: This is slow, it takes ~15-20 cycles to do the entire conversion.
-  // this probably only works when continuous sampling is off.
-  ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
+  ADC_ClearFlag(ADC1,ADC_FLAG_EOC); //Shouldn't need this, but just incase from calibration
   ADC_StartOfConversion(ADC1);
   while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
   ADC_ClearFlag(ADC1,ADC_FLAG_EOC);

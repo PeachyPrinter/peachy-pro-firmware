@@ -16,10 +16,10 @@
 extern volatile uint32_t g_dripcount;
 extern volatile uint32_t g_dripghosts;
 extern volatile uint32_t g_adcVals[ADC_CHANS];
+extern volatile uint16_t g_adcCal;
 
 static volatile uint32_t tick = 0;
 bool g_debug=1;
-uint16_t g_adcVal;
 
 uint8_t move_start = 0;
 uint8_t move_count = 0;
@@ -80,6 +80,9 @@ int main(void)
       last_drip_count = g_dripcount;
       send_updated_drip_count();
     }
-    g_adcVal = getADC1();
+    g_adcCal =  getADCVal();//Please also work?
+    if (g_adcCal != 0){
+      setInLed(1);
+    }
   }
 }
