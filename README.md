@@ -27,6 +27,12 @@ sudo make install
 
 Connect openocd to the stmf4discovery
 sudo openocd -f stlink.cfg
+Quick Ref Pinning:
+	wires A,B,C,D	
+		Discovery board:[ SWD  ]
+										[oABCDo]
+		Peachy: [USB]	[oAC]
+						[USB]	[oDB]
 
 Run arm-none-eabi-gdb with main.bin
 arm-none-eabi-gdb main.elf

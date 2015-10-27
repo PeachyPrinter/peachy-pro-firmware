@@ -24,7 +24,8 @@ typedef enum {
   IDENTIFY = 7,
   IAM = 8,
 	DEBUG = 9,
-	REBOOT = 10
+	ENTER_BOOTLOADER = 10,
+	SET_FIRM_FLAG = 11,
 } message_types_t;
 
 void serialio_feed(void);

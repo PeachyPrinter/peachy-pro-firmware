@@ -15,6 +15,7 @@
 
 extern volatile uint32_t g_dripcount;
 extern volatile uint32_t g_dripghosts;
+extern volatile uint32_t g_adcVals[ADC_CHANS];
 
 static volatile uint32_t tick = 0;
 bool g_debug=1;
@@ -32,7 +33,6 @@ void delay_ms(int ms) {
 void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
-  //g_adcVal = getADC1();
 }
 
 void init_serial_number() {
@@ -57,6 +57,7 @@ int main(void)
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
 	setupJP5();
+	setupJP6();
 	setupLeds();
 
   i2c_init();
@@ -64,7 +65,7 @@ int main(void)
   initialize_dripper();
   initialize_debouncer();
 
-  //GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1); //NC
+  //GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1); //Controlled by USB software
 	setCornerLed(1);
 	setInLed(0);
 	setCoilLed(0);

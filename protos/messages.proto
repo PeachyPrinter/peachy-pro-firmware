@@ -20,12 +20,16 @@ message MoveToDripCount {
 message Identify {
 }
 
+message SetFirmwareuInt32Flag{
+	required uint32 id = 1;
+	required uint32 value = 2;
+}
+
 message setDebug{
 	optional uint32 debug = 1;
 }
 
-message plzReboot{
-	optional uint32 reboot = 1;
+message EnterBootloader{
 }
 
 message IAm {

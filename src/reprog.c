@@ -4,41 +4,17 @@
 #include "stm32f0xx_gpio.h"
 #include <usb_core.h>
 #include <usb_cdc.h>
-#include "pb_encode.h"
-#include "messages.pb.h"
+#include "clock.h"
 
-extern bool g_debug;
-
-volatile int delay;
 //uint32_t KEY1=0x45670123;
 //uint32_t KEY2=0xCDEF89AB;
 
 void wipeFlash(){
-  unlockFlash();
-	setCoilLed(1); //Flash the led as it reboots
-  FLASH_ErasePage(0x00000000);
-  FLASH_ErasePage(0x00000001);
-  reboot();
-}
-
-void unlockFlash(){
 	__disable_irq(); //Turn off all interrupts so we can do this cleanly
-	delay=1; //Assign a variable as hacky delay
-	FLASH_Unlock(); //They forgot to disable the interrupts, could lead to fails.
-	__enable_irq();
-}
-
-void reboot(){
-  //uint8_t button;
-	//if (g_debug){
-	//	button = getDebugSwitch();
-	//	while (!button){
-	//		button = getDebugSwitch();
-	//	}
-	//}
-
+	setCoilLed(1); //Flash the LED
+	FLASH_Unlock();
+  FLASH_ErasePage(0x00000000);
 	NVIC_SystemReset();
-	//bye bye firmware
 }
 
 #ifdef _g_debug

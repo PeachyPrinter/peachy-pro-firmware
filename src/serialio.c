@@ -27,7 +27,8 @@ void handle_measure(unsigned char* buffer, int len);
 void handle_set_drip_count(unsigned char* buffer, int len);
 void handle_identify(unsigned char* buffer, int len);
 void handle_debug(unsigned char* buffer, int len);
-void handle_reboot(unsigned char* buffer, int len);
+void handle_reboot_bootloader(unsigned char* buffer, int len);
+void handle_firmware_set(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
@@ -37,7 +38,7 @@ static type_callback_map_t callbacks[] = {
   { SET_DRIP_COUNT, &handle_set_drip_count },
   { IDENTIFY, &handle_identify },
 	{ DEBUG, &handle_debug },
-	{ REBOOT, &handle_reboot },
+	{ ENTER_BOOTLOADER, &handle_reboot_bootloader },
   { 0, 0 }
 };
 
@@ -70,6 +71,23 @@ void serialio_feed() {
 /*****************************************/
 /* Callbacks for handling messages */
 
+void handle_firmware_set(unsigned char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+  SetFirmwareuInt32Flag message;
+  status = pb_decode(&stream, setDebug_fields, &message);
+  if (status) {
+		switch(message.id){
+			case 0 :
+				break;
+			case 1 :
+				break;
+			default:
+				break;
+		}
+  }
+}
+
 void handle_debug(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
@@ -80,15 +98,14 @@ void handle_debug(unsigned char* buffer, int len) {
   }
 }
 
-void handle_reboot(unsigned char* buffer, int len) {
+void handle_reboot_bootloader(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
-  plzReboot message;
+  EnterBootloader message;
   status = pb_decode(&stream, setDebug_fields, &message);
   if (status) {
-		if (message.reboot == 1){
-			reboot();
-		}
+		wipeFlash();
+		//reboot();
   }
 }
 

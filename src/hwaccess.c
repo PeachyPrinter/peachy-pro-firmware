@@ -4,12 +4,9 @@
 #include "stm32f0xx_gpio.h"
 #include "hwaccess.h"
 
-#define ADC_CHANS 1
-
-uint16_t g_adcVals[ADC_CHANS];
+uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
 
 void setupJP6(){
-
 	//Mapping Tables:
 
 	//EAGLE
@@ -33,7 +30,7 @@ void setupJP6(){
   gp.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
   gp.GPIO_Mode = GPIO_Mode_AN;
   gp.GPIO_Speed = GPIO_Speed_50MHz;
-  gp.GPIO_OType = GPIO_OType_OD;
+  gp.GPIO_OType = GPIO_OType_PP;
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOA, &gp);
 
@@ -43,37 +40,45 @@ void setupJP6(){
 void setupADC(){
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1,ENABLE);//The ADC1 is connected the APB2 peripheral bus
+  RCC_ADCCLKConfig(RCC_ADCCLK_HSI14);
+
+  ADC_DeInit(ADC1);
+
+  ADC_DiscModeCmd(ADC1,ENABLE);
+  ADC_OverrunModeCmd(ADC1,DISABLE);
+  ADC_ContinuousModeCmd(ADC1,DISABLE);
+  ADC_TempSensorCmd(ENABLE);//Enable it up here, so by the time we want to use it, it should be stable
+
   ADC_InitTypeDef adc;
-  adc.ADC_ContinuousConvMode = DISABLE; //For testing initially. Eventually tie to TIM15 for auto sampling.
-  adc.ADC_Resolution = ADC_Resolution_12b; //Go for broke and get all the bits!
+  adc.ADC_ContinuousConvMode = DISABLE; //For testing initially.
+  adc.ADC_Resolution = ADC_Resolution_12b; //take all the bits since accuracy > speed
   adc.ADC_DataAlign = ADC_DataAlign_Right; // 4095-0 for uint16_t
-  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO; //Sample on TIM15 for auto samples?
+  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
   adc.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; //Sample on the rising edge
   adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
   ADC_Init(ADC1 , &adc);
 
-  RCC_AHBPeriphClockCmd(RCC_AHBENR_DMA1EN,ENABLE); //Enable Clock to DMA
+  DMA_DeInit(DMA1_Channel1);
+  /*RCC_AHBPeriphClockCmd(RCC_AHBENR_DMA1EN,DISABLE); //Enable Clock to DMA
   DMA_InitTypeDef dma;
-  dma.DMA_BufferSize=ADC_CHANS; //DEFINED at 1 for now
-  dma.DMA_MemoryBaseAddr=&g_adcVals; //Store results in array of adcVals (circular writing)
-  dma.DMA_DIR=DMA_DIR_PeripheralSRC; //ADC is source of DMA
-  dma.DMA_M2M=DMA_M2M_Disable; //Disable memory to memory writing (read from ADC)
-  dma.DMA_MemoryDataSize=DMA_MemoryDataSize_HalfWord; //uint16_t is half of the 32 bit word
-  dma.DMA_PeripheralDataSize=DMA_PeripheralDataSize_HalfWord;
-  dma.DMA_MemoryInc=DMA_MemoryInc_Enable; //Shouldn't make a difference for 1
-  dma.DMA_Mode=DMA_Mode_Circular; //Shouldn't make a difference for 1
-  dma.DMA_PeripheralBaseAddr=(&(ADC1->DR)); //Pointer to the ADC results register
-  dma.DMA_PeripheralInc=DMA_PeripheralInc_Disable; //ADC only has one output register
+  dma.DMA_BufferSize = ADC_CHANS; //DEFINED at 2 for now
+  dma.DMA_MemoryBaseAddr = (uint32_t)g_adcVals; //Store results in array of adcVals (circular writing)
+  dma.DMA_DIR = DMA_DIR_PeripheralSRC; //ADC is source of DMA transfer
+  dma.DMA_M2M = DMA_M2M_Disable; //Disable memory to memory writing (read from ADC)
+  dma.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord; //uint16_t is half of the 32 bit word
+  dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+  dma.DMA_MemoryInc = DMA_MemoryInc_Enable; //After writing, incriment pointer: base+(pointer++)%ADC_CHANS
+  dma.DMA_Mode = DMA_Mode_Circular; //Rotate through the ADC chans that are enabled
+  dma.DMA_PeripheralBaseAddr = (uint32_t)(&(ADC1->DR)); //Pointer to the ADC results register
+  dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable; //ADC only has one output register
 
   DMA_Init(DMA1_Channel1,&dma); //ADC on DMA channel 1
+  */
 
-  ADC_DMARequestModeConfig(ADC1,ADC_DMAMode_Circular);
-  ADC_DMACmd(ADC1,ENABLE);
-  ADC_Cmd(ADC1, ENABLE);
-  //ADC_TempSensorCmd(DISABLE); //Add this for later (it's tied to ADC16)
+  //ADC_DMARequestModeConfig(ADC1,ADC_DMAMode_Circular);
+	//ADC_DMARequestModeConfig(ADC1,ADC_DMAMode_OneShot);
 
-  //Now setup the individual channels we are going to use
-  /* From Doxy:
+  /* From Doxy: NOTE: this is with the 14MHz clock, not the 48MHz pclock
     ADC_SampleTime_1_5Cycles: Sample time equal to 1.5 cycles
     ADC_SampleTime_7_5Cycles: Sample time equal to 7.5 cycles
     ADC_SampleTime_13_5Cycles: Sample time equal to 13.5 cycles
@@ -83,10 +88,29 @@ void setupADC(){
     ADC_SampleTime_71_5Cycles: Sample time equal to 71.5 cycles
     ADC_SampleTime_239_5Cycles: Sample time equal to 239.5 cycles
    */
-  //Add any channels you like, but make sure you update the DEFINE of ADC_CHANS at the top
-  ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_55_5Cycles);
+  //Add any channels you like, but make sure you update the DEFINE of ADC_CHANS in the header
+  ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_239_5Cycles); // pin in JP5
 
+  ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
+
+	//Calibrate and GO
+	//adcCal();
+  //ADC_DMACmd(ADC1,DISABLE);
+  ADC_Cmd(ADC1,ENABLE);
 }
+
+
+
+//void adcCal(void){
+//	//Set the ADCAL bit in the ADC_CR register
+//	ADC_CR |= ADC_CR_ADCAL;
+//	//While it's still high, just chill. the ADC is calibrating
+//	while (ADC_CR &= ADC_CR_ADCAL){}
+//}
+//
+//float cTemp(uint16_t){
+//	return 0.0;
+//}
 
 void setupJP5(){
 
@@ -144,6 +168,7 @@ uint16_t getADC1(){
 
   //NOTE: This is slow, it takes ~15-20 cycles to do the entire conversion.
   // this probably only works when continuous sampling is off.
+  ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
   ADC_StartOfConversion(ADC1);
   while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
   ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
