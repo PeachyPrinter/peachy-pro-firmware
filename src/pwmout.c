@@ -1,5 +1,6 @@
 #include "pwmout.h"
 #include "hwaccess.h"
+#include "stm32f0xx_conf.h"
 
 extern volatile uint8_t move_start;
 extern volatile uint8_t move_count;

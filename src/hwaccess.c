@@ -9,7 +9,6 @@ uint16_t g_adcCal;
 
 void setupJP6(){
 	//Mapping Tables:
-
 	//EAGLE
 	//[3.3V, SDA]
 	//[ADC2, SCL]
@@ -35,10 +34,35 @@ void setupJP6(){
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOA, &gp);
 
-  //setupADC();
-  manualsetupADC();
+  //Setup the ADC for circular, auto sampling.
+  //setupTIM1(); //AutoSampling
+  //setupADC_DMA(); //Circular on TIM1 into g_adcVals[]
+  setupADC(); //Setup with Circular sampling
+
+  //The enables are out here since we needed to stay disabled for DMA config
+  //ADC_DMACmd(ADC1,ENABLE);
+  //DMA_Cmd(DMA1_Channel1,ENABLE);
+  //TIM_Cmd(TIM1, ENABLE);
+  ADC_Cmd(ADC1,ENABLE);
 }
-void manualsetupADC(){
+
+void setupTIM1(){
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1,ENABLE);
+
+  TIM_InternalClockConfig(TIM1);
+
+  TIM_TimeBaseInitTypeDef ti;
+  ti.TIM_Prescaler = 480; // 48MHz/480 gives us 10us steps
+  ti.TIM_CounterMode = TIM_CounterMode_Up;
+  ti.TIM_Period = 1000; //Run the timer 10ms TODO: Make this a config?
+  ti.TIM_ClockDivision = TIM_CKD_DIV1; //Set Clock divider to 1.
+  ti.TIM_RepetitionCounter = 0; //Only valid for TIM1
+  TIM_TimeBaseInit(TIM1, &ti);
+  TIM_SelectOutputTrigger(TIM1,TIM_TRGOSource_Update);
+  TIM_Cmd(TIM1, ENABLE);
+}
+
+void setupADC(){
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1,ENABLE);//The ADC1 is connected the APB2 peripheral bus
   RCC_HSI14Cmd(ENABLE);
@@ -47,56 +71,33 @@ void manualsetupADC(){
 
   g_adcCal=ADC_GetCalibrationFactor(ADC1);
 
-  ADC_TempSensorCmd(ENABLE);//Enable it up here, so by the time we want to use it, it should be stable
-
   ADC_InitTypeDef adc;
-  adc.ADC_ContinuousConvMode = DISABLE; //For testing initially.
+  adc.ADC_ContinuousConvMode = DISABLE;
   adc.ADC_Resolution = ADC_Resolution_12b; //take all the bits since accuracy > speed
   adc.ADC_DataAlign = ADC_DataAlign_Right; // 4095-0 for uint16_t
-  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
-  adc.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; //Sample on the rising edge
+  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
+  adc.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Falling; //Sample on the rising edge
   adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
   ADC_StructInit(&adc);
 
-  //ADC_ContinuousModeCmd(ADC1,DISABLE);
+  //ADC_ContinuousModeCmd(ADC1,ENABLE);
 
-  ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
-  ADC_Cmd(ADC1,ENABLE);
-}
-
-void setupADC(){
-
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1,ENABLE);//The ADC1 is connected the APB2 peripheral bus
-  RCC_HSI14Cmd(ENABLE);
-  RCC_HSI14ADCRequestCmd(ENABLE);
-  RCC_ADCCLKConfig(RCC_ADCCLK_HSI14);
-
-  ADC_DeInit(ADC1);
-
-  //ADC_AutoPowerOffCmd(DISABLE);
-  ADC_DiscModeCmd(ADC1,ENABLE);
-  ADC_OverrunModeCmd(ADC1,DISABLE);
-  ADC_ContinuousModeCmd(ADC1,DISABLE);
-  ADC_TempSensorCmd(ENABLE);//Enable it up here, so by the time we want to use it, it should be stable
+  ADC_TempSensorCmd(ENABLE);
   ADC_VrefintCmd(ENABLE);
 
-  ADC_InitTypeDef adc;
-  adc.ADC_ContinuousConvMode = DISABLE; //For testing initially.
-  adc.ADC_Resolution = ADC_Resolution_12b; //take all the bits since accuracy > speed
-  adc.ADC_DataAlign = ADC_DataAlign_Right; // 4095-0 for uint16_t
-  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
-  adc.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; //Sample on the rising edge
-  adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
-  ADC_StructInit(&adc);
-  //ADC_Init(ADC1 , &adc);
+  ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
+  ADC_ChannelConfig(ADC1,ADC_Channel_17,ADC_SampleTime_239_5Cycles); //Vref sensor tied to chan 17
+}
 
+void setupADC_DMA(){
 
+  RCC_AHBPeriphClockCmd(RCC_AHBENR_DMA1EN,ENABLE); //Enable Clock to DMA
 
-  DMA_DeInit(DMA1_Channel1);
-  /*RCC_AHBPeriphClockCmd(RCC_AHBENR_DMA1EN,DISABLE); //Enable Clock to DMA
+  ADC_DMARequestModeConfig(ADC1,ADC_DMAMode_Circular);
+
   DMA_InitTypeDef dma;
-  dma.DMA_BufferSize = ADC_CHANS; //DEFINED at 2 for now
-  dma.DMA_MemoryBaseAddr = (uint32_t)g_adcVals; //Store results in array of adcVals (circular writing)
+  dma.DMA_BufferSize = ADC_CHANS; // Same size as channels - this does the pointer modulous.
+  dma.DMA_MemoryBaseAddr = (uint32_t)g_adcVals[0]; //Store results in array of adcVals (circular writing)
   dma.DMA_DIR = DMA_DIR_PeripheralSRC; //ADC is source of DMA transfer
   dma.DMA_M2M = DMA_M2M_Disable; //Disable memory to memory writing (read from ADC)
   dma.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord; //uint16_t is half of the 32 bit word
@@ -107,45 +108,7 @@ void setupADC(){
   dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable; //ADC only has one output register
 
   DMA_Init(DMA1_Channel1,&dma); //ADC on DMA channel 1
-  */
-
-  //ADC_DMARequestModeConfig(ADC1,ADC_DMAMode_Circular);
-	//ADC_DMARequestModeConfig(ADC1,ADC_DMAMode_OneShot);
-
-  /* From Doxy: NOTE: this is with the 14MHz clock, not the 48MHz pclock
-    ADC_SampleTime_1_5Cycles: Sample time equal to 1.5 cycles
-    ADC_SampleTime_7_5Cycles: Sample time equal to 7.5 cycles
-    ADC_SampleTime_13_5Cycles: Sample time equal to 13.5 cycles
-    ADC_SampleTime_28_5Cycles: Sample time equal to 28.5 cycles
-    ADC_SampleTime_41_5Cycles: Sample time equal to 41.5 cycles
-    ADC_SampleTime_55_5Cycles: Sample time equal to 55.5 cycles
-    ADC_SampleTime_71_5Cycles: Sample time equal to 71.5 cycles
-    ADC_SampleTime_239_5Cycles: Sample time equal to 239.5 cycles
-   */
-  //Add any channels you like, but make sure you update the DEFINE of ADC_CHANS in the header
-  //ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_239_5Cycles); // pin in JP5
-
-  ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
-  //ADC_ChannelConfig(ADC1,ADC_Channel_17,ADC_SampleTime_239_5Cycles); //Vref sensor tied to chan 16
-
-	//Calibrate and GO
-	//adcCal();
-  //ADC_DMACmd(ADC1,DISABLE);
-  ADC_Cmd(ADC1,ENABLE);
 }
-
-
-
-//void adcCal(void){
-//	//Set the ADCAL bit in the ADC_CR register
-//	ADC_CR |= ADC_CR_ADCAL;
-//	//While it's still high, just chill. the ADC is calibrating
-//	while (ADC_CR &= ADC_CR_ADCAL){}
-//}
-//
-//float cTemp(uint16_t){
-//	return 0.0;
-//}
 
 void setupJP5(){
 
