@@ -4,8 +4,9 @@
 #include "stm32f0xx_gpio.h"
 #include "hwaccess.h"
 
-uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
-uint16_t g_adcCal;
+volatile uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
+volatile uint16_t g_adcCal;
+volatile uint8_t g_adc_indexer=0;
 
 void setupJP6(){
 	//Mapping Tables:
@@ -29,8 +30,8 @@ void setupJP6(){
   GPIO_InitTypeDef gp;
   gp.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
   gp.GPIO_Mode = GPIO_Mode_AN;
-  gp.GPIO_Speed = GPIO_Speed_50MHz;
-  gp.GPIO_OType = GPIO_OType_PP;
+  //gp.GPIO_Speed = GPIO_Speed_50MHz;
+  //gp.GPIO_OType = GPIO_OType_PP;
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOA, &gp);
 
@@ -66,13 +67,13 @@ void setupADC(){
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1,ENABLE);//The ADC1 is connected the APB2 peripheral bus
   RCC_HSI14Cmd(ENABLE);
-  RCC_ADCCLKConfig(RCC_ADCCLK_HSI14);
   RCC_HSI14ADCRequestCmd(ENABLE);
+  RCC_ADCCLKConfig(RCC_ADCCLK_HSI14);
 
   g_adcCal=ADC_GetCalibrationFactor(ADC1);
 
   ADC_InitTypeDef adc;
-  adc.ADC_ContinuousConvMode = DISABLE;
+  adc.ADC_ContinuousConvMode = ENABLE;
   adc.ADC_Resolution = ADC_Resolution_12b; //take all the bits since accuracy > speed
   adc.ADC_DataAlign = ADC_DataAlign_Right; // 4095-0 for uint16_t
   adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
@@ -80,11 +81,14 @@ void setupADC(){
   adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
   ADC_StructInit(&adc);
 
-  //ADC_ContinuousModeCmd(ADC1,ENABLE);
+  ADC_ContinuousModeCmd(ADC1,ENABLE);
+  //ADC_DiscModeCmd(ADC1,ENABLE); //Sample one at at a time
 
   ADC_TempSensorCmd(ENABLE);
   ADC_VrefintCmd(ENABLE);
 
+  ADC_ChannelConfig(ADC1,ADC_Channel_2,ADC_SampleTime_239_5Cycles);
+  ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_239_5Cycles);
   ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
   ADC_ChannelConfig(ADC1,ADC_Channel_17,ADC_SampleTime_239_5Cycles); //Vref sensor tied to chan 17
 }
@@ -159,13 +163,14 @@ void setupLeds(){
   GPIO_Init(GPIOB, &gp);
 }
 
-uint16_t getADCVal(){
-  //Start conversion, wait for it to finish, then clear the flags and return the value we got
-  ADC_ClearFlag(ADC1,ADC_FLAG_EOC); //Shouldn't need this, but just incase from calibration
+void updateADCs(){ //Continous conversions only.
   ADC_StartOfConversion(ADC1);
-  while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
-  ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
-  return ADC_GetConversionValue(ADC1);
+  for (uint8_t i=0;i<ADC_CHANS;i++){
+    while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
+    ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
+    g_adcVals[g_adc_indexer]=ADC1->DR;
+    g_adc_indexer=(g_adc_indexer+1)%ADC_CHANS;
+  }
 }
 
 void setJP5_PA5(uint8_t instate){

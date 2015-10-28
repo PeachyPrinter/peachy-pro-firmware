@@ -25,13 +25,6 @@ uint8_t move_start = 0;
 uint8_t move_count = 0;
 Move move_buffer[MOVE_SIZE];
 
-uint8_t adc_indexer=0;
-
-void update_adcs(){
-  g_adcVals[adc_indexer]=getADCVal();
-  adc_indexer=(adc_indexer+1)%2;
-}
-
 void delay_ms(int ms) {
   uint32_t end = tick + (ms*2);
   while(tick < end);
@@ -40,7 +33,7 @@ void delay_ms(int ms) {
 void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
-  update_adcs();
+  updateADCs();
 }
 
 void init_serial_number() {
@@ -88,8 +81,11 @@ int main(void)
       last_drip_count = g_dripcount;
       send_updated_drip_count();
     }
-    if (g_adcVals[1] != 0){
+    if (g_adcVals[2] != 0){
       setInLed(1);
+    }
+    else{
+      setInLed(0);
     }
   }
 }
