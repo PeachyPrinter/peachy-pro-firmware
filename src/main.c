@@ -37,7 +37,7 @@ void update_analog_pwm(){
 
 	int32_t xout;
 	int32_t yout;
-	uint8_t laserpower=200;
+	uint8_t laserpower=200; //~80%
 
 	//12 bits to 18, for code reuse later if I need
 	//Subtract offset, so 1.4V is 0
@@ -48,10 +48,16 @@ void update_analog_pwm(){
 	TIM_SetCompare2(TIM2, xout & 0x1FF);
 	TIM_SetCompare3(TIM2, yout >> 9);
 	TIM_SetCompare4(TIM2, yout & 0x1FF);
+
   if (getDebugSwitch()){ //TODO: change to actual switch
 		setCornerLed(0);
-    TIM_SetCompare1(TIM3, laserpower); // about 74% power
+    TIM_SetCompare1(TIM3, laserpower);
     laser_on();
+	}
+	else{
+		setCornerLed(1);
+    TIM_SetCompare1(TIM3, 0); // about 74% power
+    laser_off();
 	}
 }
 
