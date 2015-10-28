@@ -20,6 +20,9 @@ extern volatile uint16_t g_adcCal;
 
 static volatile uint32_t tick = 0;
 bool g_debug=1;
+bool g_analog_controls=1;
+uint16_t g_xoffset = 2048;
+uint16_t g_yoffset = 2048;
 
 uint8_t move_start = 0;
 uint8_t move_count = 0;
@@ -30,10 +33,36 @@ void delay_ms(int ms) {
   while(tick < end);
 }
 
+void update_analog_pwm(){
+
+	int32_t xout;
+	int32_t yout;
+	uint8_t laserpower=200;
+
+	//12 bits to 18, for code reuse later if I need
+	//Subtract offset, so 1.4V is 0
+	xout = (g_adcVals[0]-g_xoffset)<<6;
+	yout = (g_adcVals[1]-g_yoffset)<<6;
+	
+	TIM_SetCompare1(TIM2, xout >> 9);
+	TIM_SetCompare2(TIM2, xout & 0x1FF);
+	TIM_SetCompare3(TIM2, yout >> 9);
+	TIM_SetCompare4(TIM2, yout & 0x1FF);
+  if (getDebugSwitch()){ //TODO: change to actual switch
+		setCornerLed(0);
+    TIM_SetCompare1(TIM3, laserpower); // about 74% power
+    laser_on();
+	}
+}
+
 void SysTick_Handler(void) {
   tick += 1;
-  update_pwm();
-  updateADC();
+	if (g_analog_controls){
+		update_analog_pwm();
+	}
+	else{
+		update_pwm();
+	}
 }
 
 void init_serial_number() {
@@ -81,11 +110,6 @@ int main(void)
       last_drip_count = g_dripcount;
       send_updated_drip_count();
     }
-    if (g_adcVals[2] != 0){
-      setInLed(1);
-    }
-    else{
-      setInLed(0);
-    }
+		updateADC(); //Update a single ADC value each loop - Interrupt save
   }
 }

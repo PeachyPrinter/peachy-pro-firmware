@@ -12,11 +12,10 @@ void setJP5_PA7(uint8_t);
 uint8_t getDebugSwitch(void);
 uint16_t getADCVal();
 void updateADCs();
+void updateADC();
 void setupADC_DMA();
 void setupADC();
 void setupTIM1();
-float cTemp(uint16_t);
-void adcCal(void);
 
 void setupJP6(void);
 
