@@ -72,8 +72,10 @@ void setupADC(){
 
   g_adcCal=ADC_GetCalibrationFactor(ADC1);
 
+  ADC_DiscModeCmd(ADC1,ENABLE); //Sample one at at a time
+
   ADC_InitTypeDef adc;
-  adc.ADC_ContinuousConvMode = ENABLE;
+  adc.ADC_ContinuousConvMode = DISABLE;
   adc.ADC_Resolution = ADC_Resolution_12b; //take all the bits since accuracy > speed
   adc.ADC_DataAlign = ADC_DataAlign_Right; // 4095-0 for uint16_t
   adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
@@ -81,8 +83,7 @@ void setupADC(){
   adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
   ADC_StructInit(&adc);
 
-  ADC_ContinuousModeCmd(ADC1,ENABLE);
-  //ADC_DiscModeCmd(ADC1,ENABLE); //Sample one at at a time
+  //ADC_ContinuousModeCmd(ADC1,DISABLE);
 
   ADC_TempSensorCmd(ENABLE);
   ADC_VrefintCmd(ENABLE);
@@ -171,6 +172,14 @@ void updateADCs(){ //Continous conversions only.
     g_adcVals[g_adc_indexer]=ADC1->DR;
     g_adc_indexer=(g_adc_indexer+1)%ADC_CHANS;
   }
+}
+
+void updateADC(){ //Single Conversions only
+  ADC_StartOfConversion(ADC1);
+  while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
+  ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
+  g_adcVals[g_adc_indexer]=ADC1->DR;
+  g_adc_indexer=(g_adc_indexer+1)%ADC_CHANS;
 }
 
 void setJP5_PA5(uint8_t instate){

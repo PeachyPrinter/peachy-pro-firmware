@@ -33,7 +33,7 @@ void delay_ms(int ms) {
 void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
-  updateADCs();
+  updateADC();
 }
 
 void init_serial_number() {
