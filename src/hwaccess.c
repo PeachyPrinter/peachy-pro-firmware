@@ -178,7 +178,7 @@ void updateADC(){ //Single Conversions only
   ADC_StartOfConversion(ADC1);
   while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
   ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
-  g_adcVals[g_adc_indexer]=ADC1->DR;
+  g_adcVals[g_adc_indexer]=ADC_GetConversionValue(ADC1);
   g_adc_indexer=(g_adc_indexer+1)%ADC_CHANS;
 }
 

@@ -49,8 +49,8 @@ void update_analog_pwm(){
 	
 	TIM_SetCompare1(TIM2, xout >> 3);//MSBs 12 bits down to 9
 	TIM_SetCompare2(TIM2, 0);//LSBs
-	TIM_SetCompare3(TIM2, yout >> 3);
-	TIM_SetCompare4(TIM2, 0);
+	TIM_SetCompare3(TIM2, yout >> 3);//MSBs 12 bits down to 9
+	TIM_SetCompare4(TIM2, 0);//LSBs
 
   if (getDebugSwitch()){ //TODO: change to actual switch
 		setCornerLed(0);
