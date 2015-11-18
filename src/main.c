@@ -36,11 +36,18 @@ void delay_ms(int ms) {
 void update_analog_pwm(){
 
 	uint16_t xout;
+	uint16_t xout_low;
 	uint16_t yout;
+	uint16_t yout_low;
+
 	uint8_t laserpower=200; //~80%
 
 	xout = g_adcVals[0];
 	yout = g_adcVals[1];
+
+	xout_low = (xout & 0x0007)<<6;
+	yout_low = (yout & 0x0007)<<6;
+
 
 	//12 bits to 18, for code reuse later if I need
 	//Subtract offset, so 1.4V is 0
@@ -48,9 +55,9 @@ void update_analog_pwm(){
 	//yout = (g_adcVals[1]-g_yoffset)<<6;
 	
 	TIM_SetCompare1(TIM2, xout >> 3);//MSBs 12 bits down to 9
-	TIM_SetCompare2(TIM2, 0);//LSBs
+	TIM_SetCompare2(TIM2, xout_low);//LSBs
 	TIM_SetCompare3(TIM2, yout >> 3);//MSBs 12 bits down to 9
-	TIM_SetCompare4(TIM2, 0);//LSBs
+	TIM_SetCompare4(TIM2, yout_low);//LSBs
 
   if (getDebugSwitch()){ //TODO: change to actual switch
 		setCornerLed(0);
