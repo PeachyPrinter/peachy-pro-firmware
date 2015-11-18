@@ -18,7 +18,7 @@ extern volatile uint32_t g_dripghosts;
 extern volatile uint32_t g_adcVals[ADC_CHANS];
 extern volatile uint16_t g_adcCal;
 
-static volatile uint32_t tick = 0;
+volatile uint32_t tick = 0;
 bool g_debug=1;
 
 uint8_t move_start = 0;
@@ -34,6 +34,7 @@ void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
   updateADC();
+  laserToggleTest();
 }
 
 void init_serial_number() {

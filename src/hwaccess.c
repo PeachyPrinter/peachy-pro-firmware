@@ -7,6 +7,7 @@
 volatile uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
 volatile uint16_t g_adcCal;
 volatile uint8_t g_adc_indexer=0;
+extern volatile uint32_t tick;
 
 void setupJP6(){
 	//Mapping Tables:
@@ -30,8 +31,6 @@ void setupJP6(){
   GPIO_InitTypeDef gp;
   gp.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
   gp.GPIO_Mode = GPIO_Mode_AN;
-  //gp.GPIO_Speed = GPIO_Speed_50MHz;
-  //gp.GPIO_OType = GPIO_OType_PP;
   gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOA, &gp);
 
@@ -135,7 +134,7 @@ void setupJP5(){
   //PA7: SPI1_MOSI|I2S1_SD|TIM1_CH1N|TIM17_CH1|TSC_G2_IO4|EVENTOUT|ADC_IN8
   //PB0: TIM3_CH3|TIM1_CH2N|TSC_G3_IO2|EVENTOUT|ADC_IN8
 
-	//Future SD card location... Hopefully
+  //PA6 and PA7 are tied to laser testing signal for now
   GPIO_InitTypeDef gp;
   gp.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
   gp.GPIO_Mode = GPIO_Mode_OUT;
@@ -151,6 +150,27 @@ void setupJP5(){
   gp.GPIO_OType = GPIO_OType_OD;
   gp.GPIO_PuPd = GPIO_PuPd_UP;
   GPIO_Init(GPIOB, &gp);
+}
+
+void laserToggleTest(){
+  // Use bits 15 and 14 as timing bits for ~4 second cycle
+  uint8_t timingBits;
+  timingBits=(tick>>13)&0x3;
+
+  switch (timingBits){
+    case 0:
+      GPIO_WriteBit(GPIOA, GPIO_Pin_6, 0);
+      GPIO_WriteBit(GPIOA, GPIO_Pin_7, 1);
+      break;
+    case 1:
+      GPIO_WriteBit(GPIOA, GPIO_Pin_6, 1);
+      GPIO_WriteBit(GPIOA, GPIO_Pin_7, 0);
+      break;
+    default:
+      GPIO_WriteBit(GPIOA, GPIO_Pin_7, 1);
+      GPIO_WriteBit(GPIOA, GPIO_Pin_6, 1);
+      break;
+  }
 }
 
 void setupLeds(){
