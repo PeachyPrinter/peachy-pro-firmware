@@ -28,7 +28,6 @@ void EXTI0_1_IRQHandler(void) {
     }
     if ((g_dripcount>5) & g_debug){ //g_debug, 6 "drips" turns on the LED for check if it works
 			setCoilLed(1);
-			//wipeFlash(); //tick...tick...boom
     }
     EXTI_ClearITPendingBit(EXTI_Line1);
   }

@@ -6,6 +6,7 @@
 
 void initialize_pwm(void);
 void update_pwm(void);
+void set_pwm(int32_t,int32_t,uint32_t);
 
 #define MOVE_SIZE 8
 

@@ -96,29 +96,13 @@ void initialize_pwm(void) {
   GPIO_Init(GPIOB, &gp);
 }
 
-void update_pwm(void) {
-  int32_t xout;
-  int32_t yout;
-  uint32_t laserpower;
-
-  //nlaserEn = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0); //Active Low switch
-	setCornerLed(1);
-  if (g_debug & getDebugSwitch()){
-		setCornerLed(0);
-    TIM_SetCompare1(TIM3, 200); // about 74% power
-    laser_on();
-  }
-  else if (move_count > 0) {
-    xout = move_buffer[move_start].x;
-    yout = move_buffer[move_start].y;
-    laserpower = move_buffer[move_start].laserPower;
-
+void set_pwm(int32_t xout,int32_t yout,uint32_t laserpower){
     // Position
     TIM_SetCompare1(TIM2, xout >> 9);
     TIM_SetCompare2(TIM2, xout & 0x1FF);
     TIM_SetCompare3(TIM2, yout >> 9);
     TIM_SetCompare4(TIM2, yout & 0x1FF);
-    
+
     // Laser Power
     TIM_SetCompare1(TIM3, laserpower & 0xFF);
 
@@ -128,6 +112,23 @@ void update_pwm(void) {
       laser_off();
     }
 
+}
+void update_pwm(void) {
+  int32_t xout;
+  int32_t yout;
+  uint32_t laserpower;
+
+	setCornerLed(1);
+  if (g_debug & getDebugSwitch()){ //Debug switch override (blocking)
+		setCornerLed(0);
+    TIM_SetCompare1(TIM3, 200); // about 74% power
+    laser_on();
+  }
+  else if (move_count > 0) {
+    xout = move_buffer[move_start].x;
+    yout = move_buffer[move_start].y;
+    laserpower = move_buffer[move_start].laserPower;
+    set_pwm(xout,yout,laserpower);
     move_start = (move_start + 1) % MOVE_SIZE;
     move_count--;
   } else {

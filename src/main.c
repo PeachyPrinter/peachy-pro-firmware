@@ -19,7 +19,8 @@ extern volatile uint32_t g_adcVals[ADC_CHANS];
 extern volatile uint16_t g_adcCal;
 
 volatile uint32_t tick = 0;
-bool g_debug=1;
+bool g_debug=0;
+bool g_checkcoils=1;
 
 uint8_t move_start = 0;
 uint8_t move_count = 0;
@@ -34,7 +35,9 @@ void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
   updateADC();
-  laserToggleTest();
+	if (g_debug){
+		laserToggleTest();
+	}
 }
 
 void init_serial_number() {
@@ -73,6 +76,10 @@ int main(void)
 	setCoilLed(0);
   
   SysTick_Config(SystemCoreClock / 2000);
+
+  if (g_checkcoils){
+    checkCoils();
+  }
 
   int last_drip_count = g_dripcount;
   while(1) {

@@ -3,11 +3,28 @@
 #include "stm32f0xx_rcc.h"
 #include "stm32f0xx_gpio.h"
 #include "hwaccess.h"
+#include "clock.h"
+#include "pwmout.h"
 
 volatile uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
 volatile uint16_t g_adcCal;
 volatile uint8_t g_adc_indexer=0;
 extern volatile uint32_t tick;
+
+void checkCoils(){
+ //Move coils both to MAX VAL (slowly), then to MIN VAL, and back again (x2)
+  //uint32_t x,y;
+  uint32_t max=0x3FFFF;//18 bits full range
+
+  set_pwm(max,max,0);
+  delay_ms(500);
+  set_pwm(0,0,0);
+  delay_ms(500);
+  set_pwm(max,max,0);
+  delay_ms(500);
+  set_pwm(0,0,0);
+
+}
 
 void setupJP6(){
 	//Mapping Tables:
@@ -153,7 +170,7 @@ void setupJP5(){
 }
 
 void laserToggleTest(){
-  // Use bits 15 and 14 as timing bits for ~4 second cycle
+  // Use bits 14 and 13 as timing bits for ~4 second cycle
   uint8_t timingBits;
   timingBits=(tick>>13)&0x3;
 
