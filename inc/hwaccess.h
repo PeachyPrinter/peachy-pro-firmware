@@ -19,6 +19,7 @@ void setupADC();
 void setupTIM1();
 float cTemp(uint16_t);
 void adcCal(void);
+void twigCoils(void);
 
 void setupJP6(void);
 

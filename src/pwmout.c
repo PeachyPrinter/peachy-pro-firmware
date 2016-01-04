@@ -103,16 +103,15 @@ void set_pwm(int32_t xout,int32_t yout,uint32_t laserpower){
     TIM_SetCompare3(TIM2, yout >> 9);
     TIM_SetCompare4(TIM2, yout & 0x1FF);
 
-    // Laser Power
-    TIM_SetCompare1(TIM3, laserpower & 0xFF);
-
     if (laserpower > 0) {
       laser_on();
     } else {
       laser_off();
     }
-
+    // Laser Power
+    TIM_SetCompare1(TIM3, laserpower & 0xFF);
 }
+
 void update_pwm(void) {
   int32_t xout;
   int32_t yout;

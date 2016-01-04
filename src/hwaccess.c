@@ -10,6 +10,7 @@ volatile uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
 volatile uint16_t g_adcCal;
 volatile uint8_t g_adc_indexer=0;
 extern volatile uint32_t tick;
+volatile uint32_t g_coil_twig_state=0;
 
 void checkCoils(){
  //Move coils both to MAX VAL (slowly), then to MIN VAL, and back again (x2)
@@ -24,6 +25,30 @@ void checkCoils(){
   delay_ms(500);
   set_pwm(0,0,0);
 
+}
+
+void twigCoils(){
+  uint32_t max=0x3FFFF;//18 bits full range
+  uint32_t middle=0x20000;
+
+  //Systick is 1/24000 seconds, once every 2^10 (~0.7 seconds) it switches state
+  if ((tick&0x03FF)==0){ //IF the lower 14 bits are 0
+    g_coil_twig_state=(g_coil_twig_state+1)%4; //
+    switch(g_coil_twig_state){
+      case 0: //stop
+        set_pwm(middle,middle,0);
+        break;
+      case 1: //far right
+        set_pwm(max,max,0);
+        break;
+      case 2: //stop
+        set_pwm(middle,middle,0);
+        break;
+      case 3: //far left
+        set_pwm(0,0,0);
+        break;
+    }
+  }
 }
 
 void setupJP6(){

@@ -8,6 +8,7 @@
 #include "dripper.h"
 #include "reprog.h"
 #include "hwaccess.h"
+#include "clock.h"
 
 #include <usb_core.h>
 #include <usb_cdc.h>
@@ -21,7 +22,7 @@ extern volatile uint16_t g_adcCal;
 volatile uint32_t tick = 0;
 bool g_debug=0;
 bool g_checkcoils=1;
-
+bool g_twig_coils=1;
 uint8_t move_start = 0;
 uint8_t move_count = 0;
 Move move_buffer[MOVE_SIZE];
@@ -35,6 +36,9 @@ void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
   updateADC();
+  if(g_twig_coils){
+    twigCoils();
+  }
 	if (g_debug){
 		laserToggleTest();
 	}
@@ -75,15 +79,24 @@ int main(void)
 	setInLed(0);
 	setCoilLed(0);
   
-  SysTick_Config(SystemCoreClock / 2000);
+  SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 24KHz, so a count of 24000 should be 1 second
 
-  if (g_checkcoils){
-    checkCoils();
-  }
+  //TODO:
+  //Twig coils until first move message
+  //Use the systick variable and set when next instruction is
+  //use switch case for state machine?
+  //move check inside the wile loop
+  //if (g_checkcoils){
+    //checkCoils();
+  //}
 
   int last_drip_count = g_dripcount;
   while(1) {
     serialio_feed();
+
+    if (move_count!=0){
+      g_twig_coils=0;
+    }
 
     if (g_dripcount != last_drip_count) {
       last_drip_count = g_dripcount;
