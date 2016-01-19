@@ -69,7 +69,7 @@ int main(void)
 	setupJP6();
 	setupLeds();
 
-  i2c_init();
+  //i2c_init();
   initialize_pwm();
   initialize_dripper();
   initialize_debouncer();

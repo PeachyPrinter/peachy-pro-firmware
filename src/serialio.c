@@ -29,6 +29,8 @@ void handle_identify(unsigned char* buffer, int len);
 void handle_debug(unsigned char* buffer, int len);
 void handle_reboot_bootloader(unsigned char* buffer, int len);
 void handle_firmware_set(unsigned char* buffer, int len);
+void handle_get_adc_val(unsigned char* buffer, int len);
+void handle_return_adc_val(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
@@ -39,6 +41,8 @@ static type_callback_map_t callbacks[] = {
   { IDENTIFY, &handle_identify },
 	{ DEBUG, &handle_debug },
 	{ ENTER_BOOTLOADER, &handle_reboot_bootloader },
+	{ GET_ADC_VAL, &handle_get_adc_val },
+	//{ RETURN_ADC_VAL, &handle_return_adc_val },
   { 0, 0 }
 };
 
@@ -70,12 +74,35 @@ void serialio_feed() {
 
 /*****************************************/
 /* Callbacks for handling messages */
+void handle_get_adc_val(unsigned char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+	/*
+	GetAdcVal message;
+  status = pb_decode(&stream, GetAdcVal_fields, &message);
+  if(status) {
+
+	}
+	*/
+}
+
+/*
+void handle_return_adc_val(unsigned char* buffer, int len) {
+  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
+  bool status;
+	ReturnAdcVal message;
+  status = pb_decode(&stream, ReturnAdcVal_fields, &message);
+  if(status) {
+
+	}
+}
+*/
 
 void handle_firmware_set(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
   SetFirmwareuInt32Flag message;
-  status = pb_decode(&stream, setDebug_fields, &message);
+  status = pb_decode(&stream, SetDebug_fields, &message);
   if (status) {
 		switch(message.id){
 			case 0 :
@@ -91,8 +118,8 @@ void handle_firmware_set(unsigned char* buffer, int len) {
 void handle_debug(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
-  setDebug message;
-  status = pb_decode(&stream, setDebug_fields, &message);
+  SetDebug message;
+  status = pb_decode(&stream, SetDebug_fields, &message);
   if (status) {
     g_debug = message.debug;
   }
@@ -102,10 +129,9 @@ void handle_reboot_bootloader(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
   EnterBootloader message;
-  status = pb_decode(&stream, setDebug_fields, &message);
+  status = pb_decode(&stream, SetDebug_fields, &message);
   if (status) {
 		wipeFlash();
-		//reboot();
   }
 }
 
