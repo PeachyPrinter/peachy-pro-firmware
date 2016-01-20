@@ -12,7 +12,8 @@ while true; do
     
     if [ $input == 1 ]; then
         git pull;
-    elif [ $input == 2 ]; then
+    #elif [ $input == 2 ]; then
+    else
         make
         dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v -d 16d0:0af3
     fi

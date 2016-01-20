@@ -60,6 +60,8 @@ void init_serial_number() {
 
 int main(void)
 {
+  uint32_t test_debug;
+
   init_serial_number();
 	USB_Start();
   
@@ -69,8 +71,8 @@ int main(void)
 	setupJP5();
 	setupJP6();
 	setupLeds();
-	setup_keycard();
 
+  setup_keycard();
   initialize_pwm();
   initialize_dripper();
   initialize_debouncer();
@@ -95,6 +97,7 @@ int main(void)
   int last_drip_count = g_dripcount;
   while(1) {
     serialio_feed();
+    test_debug=TIM16->CNT;
 
     if (move_count!=0){
       g_twig_coils=0;

@@ -27,6 +27,9 @@ void setup_keycard(void){
 
   //Initialize External Interrupts on PF0
   // Falling edge KEY CLOCK (PF0)
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+  SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOF, EXTI_PinSource0);
+
   EXTI_InitTypeDef exti;
   exti.EXTI_Line = EXTI_Line0;
   exti.EXTI_Mode = EXTI_Mode_Interrupt;
@@ -43,7 +46,9 @@ void setup_keycard(void){
   ti.TIM_ClockDivision = TIM_CKD_DIV4;
   ti.TIM_RepetitionCounter = 0;
   TIM_TimeBaseInit(TIM16, &ti);
-  TIM_Cmd(TIM2, ENABLE);
+
+  TIM_ITConfig(TIM16,TIM_IT_Trigger,ENABLE);
+  TIM_Cmd(TIM16, ENABLE);
 
   //TODO: enable timer interrupt and zero key
   NVIC_InitTypeDef nvic;
@@ -52,6 +57,7 @@ void setup_keycard(void){
   nvic.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&nvic);
 
+
   //Setup TIM16 as key timeout
   // Set roll over to ~2 seconds.
   //   IF roll over then g_key_state==KEY_MISSING
@@ -59,10 +65,18 @@ void setup_keycard(void){
   //      g_key_pos=0
 }
 void TIM16_IRQHandler(void){
-  if (g_key_state==KEY_CHECKING){
-    g_key_pos=0;
-    g_key_state=KEY_MISSING;
-    g_key_code=0;
+  setCoilLed(1);
+  if (TIM_GetITStatus(TIM16,TIM_IT_Trigger) != RESET){
+    if (g_key_state==KEY_CHECKING){
+      g_key_pos=0;
+      g_key_state=KEY_MISSING;
+      g_key_code=0;
+    }
+    //This should just be trigger
+    TIM_ClearITPendingBit(TIM16,TIM_IT_Trigger);
+    //TIM_ClearITPendingBit(TIM16,TIM_IT_Break);
+    //TIM_ClearITPendingBit(TIM16,TIM_IT_Update);
+    setCoilLed(0);
   }
 }
 
@@ -74,7 +88,9 @@ void update_key_state(void){
 }
 
 void read_key(void){
+  setCornerLed(1);
   key_check(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_0));
+  setCornerLed(0);
 }
 
 void key_check(uint32_t key_bit){
