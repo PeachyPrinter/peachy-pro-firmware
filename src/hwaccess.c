@@ -13,21 +13,6 @@ extern volatile uint32_t tick;
 volatile uint32_t g_coil_twig_state=0;
 volatile uint32_t g_musicVar=0;
 
-void checkCoils(){
- //Move coils both to MAX VAL (slowly), then to MIN VAL, and back again (x2)
-  //uint32_t x,y;
-  uint32_t max=0x3FFFF;//18 bits full range
-
-  set_pwm(max,max,0);
-  delay_ms(500);
-  set_pwm(0,0,0);
-  delay_ms(500);
-  set_pwm(max,max,0);
-  delay_ms(500);
-  set_pwm(0,0,0);
-
-}
-
 void twigCoils(){
   uint32_t max=0x3FFFF;//18 bits full range
   uint32_t middle=0x20000;
@@ -35,7 +20,7 @@ void twigCoils(){
 
   //Systick is 1/24000 seconds, once every 2^10 (~0.5 seconds) it switches state
   if ((tick&0x03FF)==0){ //IF the lower 14 bits are 0
-    setCoilLed(0);
+    setUSBLed(0);
     g_coil_twig_state=(g_coil_twig_state+1)%5; //
     switch(g_coil_twig_state){
       case 0: //stop
@@ -55,15 +40,14 @@ void twigCoils(){
     }
   }
   else if (g_coil_twig_state==4){ //BEEP TIME!
+    setUSBLed(1);
     if (g_musicVar){
       g_musicVar=0;
       set_pwm(g_musicVar,g_musicVar,0);
-      setCoilLed(0);
     }
     else{
       g_musicVar=0x3FFFF;
       set_pwm(g_musicVar,g_musicVar,0);
-      setCoilLed(1);
     }
   }
 }
@@ -105,6 +89,7 @@ void setupJP6(){
   ADC_Cmd(ADC1,ENABLE);
 }
 
+//Unused, I couldn't get TIM1 to run, it's a 32bit counter though.
 void setupTIM1(){
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1,ENABLE);
 
@@ -152,6 +137,7 @@ void setupADC(){
   ADC_ChannelConfig(ADC1,ADC_Channel_17,ADC_SampleTime_239_5Cycles); //Vref sensor tied to chan 17
 }
 
+//Unused, leaving here for now
 void setupADC_DMA(){
 
   RCC_AHBPeriphClockCmd(RCC_AHBENR_DMA1EN,ENABLE); //Enable Clock to DMA
@@ -243,16 +229,6 @@ void setupLeds(){
   GPIO_Init(GPIOB, &gp);
 }
 
-void updateADCs(){ //Continous conversions only.
-  ADC_StartOfConversion(ADC1);
-  for (uint8_t i=0;i<ADC_CHANS;i++){
-    while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
-    ADC_ClearFlag(ADC1,ADC_FLAG_EOC);
-    g_adcVals[g_adc_indexer]=ADC1->DR;
-    g_adc_indexer=(g_adc_indexer+1)%ADC_CHANS;
-  }
-}
-
 void updateADC(){ //Single Conversions only
   ADC_StartOfConversion(ADC1);
   while (!ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)){}
@@ -285,12 +261,18 @@ void setInLed(uint8_t instate){
   GPIO_WriteBit(GPIOB, GPIO_Pin_13, instate); //Inside corner
 }	
 
+void setUSBLed(uint8_t instate){
+  GPIO_WriteBit(GPIOB, GPIO_Pin_12, instate); //Inside corner
+}
+
 void laser_on(void) {
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, 1);
+  setInLed(1);
 }
 
 void laser_off(void) {
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, 0);
+  setInLed(0);
 }
 
 uint8_t getDebugSwitch(){

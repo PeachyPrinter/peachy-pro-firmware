@@ -1,12 +1,10 @@
 #include "stm32f0xx_conf.h"
 #include "stm32f0xx_tim.h"
 #include "stm32f0xx_gpio.h"
+#include "stm32f0xx_exti.h"
 
-#define KEY_VALID 2
-#define KEY_CHECKING 1
-#define KEY_MISSING 0
-#define KEY_MASTER 0b11001001
-#define KEY_LENGTH 8
+#include "keycard.h"
+#include "hwaccess.h"
 
 uint32_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
@@ -15,6 +13,8 @@ uint32_t g_key_pos=0;
 void setup_keycard(void){
 
   //Initialize GPIO's PF0 && PF1 (INPUTS)
+  //PF0 Edge triggered interrupt
+  //PF1 simple GPIO read (key data)
   GPIO_InitTypeDef gp;
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOF, ENABLE);
 
@@ -25,10 +25,32 @@ void setup_keycard(void){
   gp.GPIO_PuPd = GPIO_PuPd_UP;
   GPIO_Init(GPIOF, &gp);
 
-  //Initialize External Interrupts on PF0, both edges
-  // Rising edge KEY INPUT
-  // Falling Edge nothing - unless g_key_state==VALID
-  //  then g_key_state==KEY_MISSING
+  //Initialize External Interrupts on PF0
+  // Falling edge KEY CLOCK (PF0)
+  EXTI_InitTypeDef exti;
+  exti.EXTI_Line = EXTI_Line0;
+  exti.EXTI_Mode = EXTI_Mode_Interrupt;
+  exti.EXTI_Trigger = EXTI_Trigger_Falling;
+  exti.EXTI_LineCmd = ENABLE;
+  EXTI_Init(&exti);
+  //ASSUMPTION: The NVIC is enabled for the lines 0-1 in the dripper
+
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM16, ENABLE);//Initialize key timeout timer
+  TIM_TimeBaseInitTypeDef ti;
+  ti.TIM_Prescaler = 12000; //Should work 48MHz/4==12MHz, pre-scaler of 12k gives me 1ms ticks?
+  ti.TIM_CounterMode = TIM_CounterMode_Up;
+  ti.TIM_Period = 1000; //in ms for ease of use
+  ti.TIM_ClockDivision = TIM_CKD_DIV4;
+  ti.TIM_RepetitionCounter = 0;
+  TIM_TimeBaseInit(TIM16, &ti);
+  TIM_Cmd(TIM2, ENABLE);
+
+  //TODO: enable timer interrupt and zero key
+  NVIC_InitTypeDef nvic;
+  nvic.NVIC_IRQChannel = TIM16_IRQn;
+  nvic.NVIC_IRQChannelPriority = 0x00;
+  nvic.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&nvic);
 
   //Setup TIM16 as key timeout
   // Set roll over to ~2 seconds.
@@ -36,28 +58,30 @@ void setup_keycard(void){
   //      g_key_code=0
   //      g_key_pos=0
 }
-
-//TODO: Fix this function, it's still a copy paste
-void EXTI0_1_IRQHandler(void) {
-  if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if not reset
-    if (TIM14->CNT > g_driptime){ //if timer is longer than minimum, incriment drips
-      g_dripcount++;
-      TIM14->CNT=0; //zero it for next time
-    }
-    else{
-      g_dripghosts++;
-    }
-    if ((g_dripcount>5) & g_debug){ //g_debug, 6 "drips" turns on the LED for check if it works
-      setCoilLed(1);
-    }
-    EXTI_ClearITPendingBit(EXTI_Line1);
+void TIM16_IRQHandler(void){
+  if (g_key_state==KEY_CHECKING){
+    g_key_pos=0;
+    g_key_state=KEY_MISSING;
+    g_key_code=0;
   }
+}
+
+void update_key_state(void){
+  if (g_key_state==KEY_VALID)
+    setCornerLed(1);
+  else
+    setCornerLed(0);
+}
+
+void read_key(void){
+  key_check(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_0));
 }
 
 void key_check(uint32_t key_bit){
 
   //If we need more bits, add em in!
-  if (g_key_state==KEY_CHECKING || g_key_state==KEY_MISSING){
+  if ((g_key_state==KEY_CHECKING) || (g_key_state==KEY_MISSING)){
+    TIM16->CNT=0; //Zero the count for timeout per bit
     g_key_code+=key_bit<<g_key_pos;
     g_key_pos++;
     g_key_state=KEY_CHECKING;

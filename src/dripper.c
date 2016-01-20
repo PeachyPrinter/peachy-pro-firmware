@@ -5,6 +5,7 @@
 #include "serialio.h"
 #include "reprog.h"
 #include "hwaccess.h"
+#include "keycard.h"
 
 #include <usb_cdc.h>
 #include "pb_encode.h"
@@ -18,6 +19,7 @@ uint32_t g_driptime=100; // 100 milliseconds (~0.001 second per timer tick)
 extern uint8_t g_debug;
 
 void EXTI0_1_IRQHandler(void) {
+  //Dripper
   if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if not reset
     if (TIM14->CNT > g_driptime){ //if timer is longer than minimum, incriment drips
       g_dripcount++;
@@ -26,10 +28,12 @@ void EXTI0_1_IRQHandler(void) {
     else{
       g_dripghosts++;
     }
-    if ((g_dripcount>5) & g_debug){ //g_debug, 6 "drips" turns on the LED for check if it works
-			setCoilLed(1);
-    }
     EXTI_ClearITPendingBit(EXTI_Line1);
+  }
+  //Key Clock
+  else if (EXTI_GetITStatus(EXTI_Line0) != RESET){
+    read_key(); //Read the key bits
+    EXTI_ClearITPendingBit(EXTI_Line0);
   }
 }
 

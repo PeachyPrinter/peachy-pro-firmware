@@ -36,6 +36,7 @@ void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
   updateADC();
+  update_key_state();
   if(g_twig_coils){
     twigCoils();
   }
@@ -68,16 +69,17 @@ int main(void)
 	setupJP5();
 	setupJP6();
 	setupLeds();
+	setup_keycard();
 
-  //i2c_init();
   initialize_pwm();
   initialize_dripper();
   initialize_debouncer();
 
   //GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1); //Controlled by USB software
-	setCornerLed(1);
+	setCornerLed(0);
 	setInLed(0);
 	setCoilLed(0);
+	setUSBLed(0);
   
   SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 24KHz, so a count of 24000 should be 1 second
 
@@ -101,12 +103,6 @@ int main(void)
     if (g_dripcount != last_drip_count) {
       last_drip_count = g_dripcount;
       send_updated_drip_count();
-    }
-    if (g_adcVals[2] != 0){
-      setInLed(1);
-    }
-    else{
-      setInLed(0);
     }
   }
 }
