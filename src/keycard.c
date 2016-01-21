@@ -74,13 +74,6 @@ void TIM16_IRQHandler(void){
       g_key_code=0;
     }
     TIM_ClearITPendingBit(TIM16,TIM_IT_Update);
-    if (g_key_state==KEY_VALID){
-      if (!GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1)){
-        g_key_pos=0;
-        g_key_state=KEY_MISSING;
-        g_key_code=0;
-      }
-    }
   }
 }
 
@@ -97,8 +90,14 @@ void read_key(void){
 
 void key_check(uint32_t key_bit){
 
-  //If we need more bits, add em in!
-  if ((g_key_state==KEY_CHECKING) || (g_key_state==KEY_MISSING)){
+  //Sensor saw light, Key gone!
+  if (g_key_state==KEY_VALID){
+    g_key_state=KEY_MISSING;
+    g_key_pos=0;
+    g_key_code=0;
+  }
+  //else, if we need more bits, add em in!
+  else if ((g_key_state==KEY_CHECKING) || (g_key_state==KEY_MISSING)){
     TIM16->CNT=0; //Zero the count for timeout per bit
     key_bit=key_bit & 0x1;//Make sure it's a single bit
     g_key_code+=key_bit<<g_key_pos;
