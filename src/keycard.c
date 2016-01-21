@@ -45,7 +45,7 @@ void setup_keycard(void){
   ti.TIM_Prescaler = 24000; //Should work 48MHz/4==12MHz, pre-scaler of 12k gives me 1ms ticks?
   ti.TIM_CounterMode = TIM_CounterMode_Up;
   ti.TIM_Period = 1000; //in ms for ease of use
-  ti.TIM_ClockDivision = TIM_CKD_DIV4;
+  ti.TIM_ClockDivision = TIM_CKD_DIV2;
   ti.TIM_RepetitionCounter = 0;
   TIM_TimeBaseInit(TIM16, &ti);
 
@@ -73,6 +73,13 @@ void TIM16_IRQHandler(void){
       g_key_state=KEY_MISSING;
       g_key_code=0;
     }
+    // If the data sensor sees dark AND key is valid -> turn off
+    else if ((GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1)) & (g_key_state==KEY_VALID)){
+      g_key_pos=0;
+      g_key_state=KEY_MISSING;
+      g_key_code=0;
+    }
+
     TIM_ClearITPendingBit(TIM16,TIM_IT_Update);
   }
 }
@@ -80,6 +87,8 @@ void TIM16_IRQHandler(void){
 void update_key_state(void){
   if (g_key_state==KEY_VALID)
     setCornerLed(1);
+  else if (g_key_state==KEY_CHECKING)
+    setCornerLed(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_0)); //LED on clock sensor sees dark
   else
     setCornerLed(0);
 }
