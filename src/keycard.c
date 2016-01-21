@@ -10,6 +10,8 @@ uint32_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
 uint32_t g_key_pos=0;
 
+uint32_t g_debugger=0;
+
 void setup_keycard(void){
 
   //Initialize GPIO's PF0 && PF1 (INPUTS)
@@ -20,9 +22,9 @@ void setup_keycard(void){
 
   gp.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
   gp.GPIO_Mode = GPIO_Mode_IN;
-  gp.GPIO_Speed = GPIO_Speed_50MHz;
-  gp.GPIO_OType = GPIO_OType_OD;
-  gp.GPIO_PuPd = GPIO_PuPd_UP;
+  gp.GPIO_Speed = GPIO_Speed_2MHz;
+  gp.GPIO_OType = GPIO_OType_PP;
+  gp.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOF, &gp);
 
   //Initialize External Interrupts on PF0
@@ -40,14 +42,14 @@ void setup_keycard(void){
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM16, ENABLE);//Initialize key timeout timer
   TIM_TimeBaseInitTypeDef ti;
-  ti.TIM_Prescaler = 12000; //Should work 48MHz/4==12MHz, pre-scaler of 12k gives me 1ms ticks?
+  ti.TIM_Prescaler = 24000; //Should work 48MHz/4==12MHz, pre-scaler of 12k gives me 1ms ticks?
   ti.TIM_CounterMode = TIM_CounterMode_Up;
   ti.TIM_Period = 1000; //in ms for ease of use
   ti.TIM_ClockDivision = TIM_CKD_DIV4;
   ti.TIM_RepetitionCounter = 0;
   TIM_TimeBaseInit(TIM16, &ti);
 
-  TIM_ITConfig(TIM16,TIM_IT_Trigger,ENABLE);
+  TIM_ITConfig(TIM16,TIM_IT_Update,ENABLE);
   TIM_Cmd(TIM16, ENABLE);
 
   //TODO: enable timer interrupt and zero key
@@ -65,18 +67,20 @@ void setup_keycard(void){
   //      g_key_pos=0
 }
 void TIM16_IRQHandler(void){
-  setCoilLed(1);
-  if (TIM_GetITStatus(TIM16,TIM_IT_Trigger) != RESET){
+  if (TIM_GetITStatus(TIM16,TIM_IT_Update) != RESET){
     if (g_key_state==KEY_CHECKING){
       g_key_pos=0;
       g_key_state=KEY_MISSING;
       g_key_code=0;
     }
-    //This should just be trigger
-    TIM_ClearITPendingBit(TIM16,TIM_IT_Trigger);
-    //TIM_ClearITPendingBit(TIM16,TIM_IT_Break);
-    //TIM_ClearITPendingBit(TIM16,TIM_IT_Update);
-    setCoilLed(0);
+    TIM_ClearITPendingBit(TIM16,TIM_IT_Update);
+    if (g_key_state==KEY_VALID){
+      if (!GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1)){
+        g_key_pos=0;
+        g_key_state=KEY_MISSING;
+        g_key_code=0;
+      }
+    }
   }
 }
 
@@ -88,9 +92,7 @@ void update_key_state(void){
 }
 
 void read_key(void){
-  setCornerLed(1);
-  key_check(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_0));
-  setCornerLed(0);
+  key_check(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1));
 }
 
 void key_check(uint32_t key_bit){
@@ -98,6 +100,7 @@ void key_check(uint32_t key_bit){
   //If we need more bits, add em in!
   if ((g_key_state==KEY_CHECKING) || (g_key_state==KEY_MISSING)){
     TIM16->CNT=0; //Zero the count for timeout per bit
+    key_bit=key_bit & 0x1;//Make sure it's a single bit
     g_key_code+=key_bit<<g_key_pos;
     g_key_pos++;
     g_key_state=KEY_CHECKING;

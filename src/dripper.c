@@ -20,7 +20,7 @@ extern uint8_t g_debug;
 
 void EXTI0_1_IRQHandler(void) {
   //Dripper
-  setCornerLed(1);
+  setCoilLed(1);
   if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if not reset
     if (TIM14->CNT > g_driptime){ //if timer is longer than minimum, incriment drips
       g_dripcount++;
@@ -36,7 +36,7 @@ void EXTI0_1_IRQHandler(void) {
     read_key(); //Read the key bits
     EXTI_ClearITPendingBit(EXTI_Line0);
   }
-  setCornerLed(0);
+  setCoilLed(0);
 }
 
 void initialize_debouncer(void) {

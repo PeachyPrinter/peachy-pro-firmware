@@ -97,7 +97,7 @@ int main(void)
   int last_drip_count = g_dripcount;
   while(1) {
     serialio_feed();
-    test_debug=TIM16->CNT;
+    setCoilLed(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1));
 
     if (move_count!=0){
       g_twig_coils=0;

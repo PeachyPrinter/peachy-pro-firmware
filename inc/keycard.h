@@ -11,7 +11,7 @@
 #define KEY_VALID 2
 #define KEY_CHECKING 1
 #define KEY_MISSING 0
-#define KEY_MASTER 0b11001001
+#define KEY_MASTER 108
 #define KEY_LENGTH 8
 
 void setup_keycard(void);
