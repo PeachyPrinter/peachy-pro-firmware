@@ -96,23 +96,6 @@ void handle_return_adc_val(unsigned char* buffer, int len) {
 }
 */
 
-void handle_firmware_set(unsigned char* buffer, int len) {
-  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
-  bool status;
-  SetFirmwareuInt32Flag message;
-  status = pb_decode(&stream, SetDebug_fields, &message);
-  if (status) {
-		switch(message.id){
-			case 0 :
-				break;
-			case 1 :
-				break;
-			default:
-				break;
-		}
-  }
-}
-
 void handle_debug(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
