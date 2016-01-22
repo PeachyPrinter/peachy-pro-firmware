@@ -6,7 +6,7 @@
 #include "keycard.h"
 #include "hwaccess.h"
 
-uint32_t g_key_state=KEY_MISSING;
+uint8_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
 uint32_t g_key_pos=0;
 
@@ -87,7 +87,7 @@ void read_key(void){
   key_check(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1));
 }
 
-void key_check(uint32_t key_bit){
+void key_check(uint8_t key_bit){
 
   //Sensor saw light, Key gone!
   if (g_key_state==KEY_VALID){

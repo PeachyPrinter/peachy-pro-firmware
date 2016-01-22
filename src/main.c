@@ -9,6 +9,7 @@
 #include "reprog.h"
 #include "hwaccess.h"
 #include "clock.h"
+#include "keycard.h"
 #include "ADClockout.h"
 
 #include <usb_core.h>
@@ -59,8 +60,6 @@ void init_serial_number() {
 
 int main(void)
 {
-  uint32_t test_debug;
-
   init_serial_number();
 	USB_Start();
   
