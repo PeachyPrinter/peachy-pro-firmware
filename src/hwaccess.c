@@ -5,6 +5,7 @@
 #include "hwaccess.h"
 #include "clock.h"
 #include "pwmout.h"
+#include "ADClockout.h"
 
 volatile uint16_t g_adcVals[ADC_CHANS]; //ADC_CHANS defined in headder
 volatile uint16_t g_adcCal;
@@ -12,6 +13,8 @@ volatile uint8_t g_adc_indexer=0;
 extern volatile uint32_t tick;
 volatile uint32_t g_coil_twig_state=0;
 volatile uint32_t g_musicVar=0;
+
+extern uint8_t g_adc_togglecount;
 
 void twigCoils(){
   uint32_t max=0x3FFFF;//18 bits full range
@@ -249,7 +252,8 @@ void laser_on(void) {
 
 void laser_off(void) {
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, 0);
-  setInLed(0);
+  if (g_adc_togglecount==ADC_TOGGLE_MAX)
+    setInLed(0);
 }
 
 uint8_t getDebugSwitch(){

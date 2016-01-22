@@ -9,6 +9,7 @@
 #include "reprog.h"
 #include "hwaccess.h"
 #include "clock.h"
+#include "ADClockout.h"
 
 #include <usb_core.h>
 #include <usb_cdc.h>
@@ -37,6 +38,7 @@ void SysTick_Handler(void) {
   update_pwm();
   updateADC();
   update_key_state();
+  check_adcLockout();
   if(g_twig_coils){
     twigCoils();
   }

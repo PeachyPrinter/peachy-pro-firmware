@@ -208,7 +208,7 @@ void handle_identify(unsigned char* buffer, int len) {
   uint8_t outbuf[64];
   stream = pb_ostream_from_buffer(outbuf, 64);
   char* swrev = VERSION;
-  char* hwrev = "hwrev 1.14";
+  char* hwrev = "1.14";
   char* sn = g_serial_number;
 
   uint8_t type = IAM;
