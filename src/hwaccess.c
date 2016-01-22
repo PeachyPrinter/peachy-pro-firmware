@@ -121,18 +121,16 @@ void setupADC(){
   adc.ADC_ContinuousConvMode = DISABLE;
   adc.ADC_Resolution = ADC_Resolution_12b; //take all the bits since accuracy > speed
   adc.ADC_DataAlign = ADC_DataAlign_Right; // 4095-0 for uint16_t
-  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_TRGO; //Sample on TIM15 for auto samples (Not needed yet)
+  adc.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_TRGO; //Sample on TIM1 for auto samples (Not needed yet)
   adc.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Falling; //Sample on the rising edge
-  adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around. Important for autosampling
+  adc.ADC_ScanDirection = ADC_ScanDirection_Upward;//Start at the bottom and rotate around.
   ADC_StructInit(&adc);
-
-  //ADC_ContinuousModeCmd(ADC1,DISABLE);
 
   ADC_TempSensorCmd(ENABLE);
   ADC_VrefintCmd(ENABLE);
 
-  ADC_ChannelConfig(ADC1,ADC_Channel_2,ADC_SampleTime_239_5Cycles);
-  ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_239_5Cycles);
+  ADC_ChannelConfig(ADC1,ADC_Channel_2,ADC_SampleTime_239_5Cycles);  //PA2
+  ADC_ChannelConfig(ADC1,ADC_Channel_3,ADC_SampleTime_239_5Cycles);  //PA3
   ADC_ChannelConfig(ADC1,ADC_Channel_16,ADC_SampleTime_239_5Cycles); //Temp sensor tied to chan 16
   ADC_ChannelConfig(ADC1,ADC_Channel_17,ADC_SampleTime_239_5Cycles); //Vref sensor tied to chan 17
 }
@@ -195,27 +193,6 @@ void setupJP5(){
   gp.GPIO_OType = GPIO_OType_OD;
   gp.GPIO_PuPd = GPIO_PuPd_UP;
   GPIO_Init(GPIOB, &gp);
-}
-
-void laserToggleTest(){
-  // Use bits 14 and 13 as timing bits for ~4 second cycle
-  uint8_t timingBits;
-  timingBits=(tick>>13)&0x3;
-
-  switch (timingBits){
-    case 0:
-      GPIO_WriteBit(GPIOA, GPIO_Pin_6, 0);
-      GPIO_WriteBit(GPIOA, GPIO_Pin_7, 1);
-      break;
-    case 1:
-      GPIO_WriteBit(GPIOA, GPIO_Pin_6, 1);
-      GPIO_WriteBit(GPIOA, GPIO_Pin_7, 0);
-      break;
-    default:
-      GPIO_WriteBit(GPIOA, GPIO_Pin_7, 1);
-      GPIO_WriteBit(GPIOA, GPIO_Pin_6, 1);
-      break;
-  }
 }
 
 void setupLeds(){

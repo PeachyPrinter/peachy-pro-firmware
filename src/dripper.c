@@ -16,7 +16,6 @@
 volatile uint32_t g_dripcount = 0;
 volatile uint32_t g_dripghosts = 0;
 uint32_t g_driptime=100; // 100 milliseconds (~0.001 second per timer tick)
-extern uint8_t g_debug;
 
 void EXTI0_1_IRQHandler(void) {
   //Dripper
@@ -53,7 +52,7 @@ void initialize_debouncer(void) {
   ti.TIM_Period = 65535; //Run the timer until roll over
   ti.TIM_ClockDivision = TIM_CKD_DIV1; //Set Clock divider to 1.
   ti.TIM_RepetitionCounter = 0; //Only valid for TIM1
-  TIM_TimeBaseInit(TIM14, &ti); //I think this is what actually sets the registers.
+  TIM_TimeBaseInit(TIM14, &ti); //What actually sets the registers.
 
   TIM_Cmd(TIM14, ENABLE);
 }

@@ -40,9 +40,6 @@ void SysTick_Handler(void) {
   if(g_twig_coils){
     twigCoils();
   }
-	if (g_debug){
-		laserToggleTest();
-	}
 }
 
 void init_serial_number() {
@@ -77,32 +74,20 @@ int main(void)
   initialize_dripper();
   initialize_debouncer();
 
-  //GPIO_WriteBit(GPIOB, GPIO_Pin_12, 1); //Controlled by USB software
 	setCornerLed(0);
 	setInLed(0);
 	setCoilLed(0);
 	setUSBLed(0);
   
-  SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 24KHz, so a count of 24000 should be 1 second
-
-  //TODO:
-  //Twig coils until first move message
-  //Use the systick variable and set when next instruction is
-  //use switch case for state machine?
-  //move check inside the wile loop
-  //if (g_checkcoils){
-    //checkCoils();
-  //}
+  SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 24KHz, so a count of 24000 should be 1 second?
 
   int last_drip_count = g_dripcount;
+
   while(1) {
     serialio_feed();
-    //setCoilLed(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1));
-
     if (move_count!=0){
       g_twig_coils=0;
     }
-
     if (g_dripcount != last_drip_count) {
       last_drip_count = g_dripcount;
       send_updated_drip_count();

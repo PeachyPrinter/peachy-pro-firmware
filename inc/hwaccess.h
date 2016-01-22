@@ -13,11 +13,9 @@ uint8_t getDebugSwitch(void);
 uint16_t getADCVal();
 void updateADC();
 void setupADC_DMA();
-void laserToggleTest();
 void checkCoils();
 void setupADC();
 void setupTIM1();
-float cTemp(uint16_t);
 void adcCal(void);
 void twigCoils(void);
 

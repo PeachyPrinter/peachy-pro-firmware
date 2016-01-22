@@ -10,12 +10,10 @@ uint32_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
 uint32_t g_key_pos=0;
 
-uint32_t g_debugger=0;
-
 void setup_keycard(void){
 
   //Initialize GPIO's PF0 && PF1 (INPUTS)
-  //PF0 Edge triggered interrupt
+  //PF0 Edge triggered interrupt (key clock)
   //PF1 simple GPIO read (key data)
   GPIO_InitTypeDef gp;
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOF, ENABLE);
@@ -38,7 +36,7 @@ void setup_keycard(void){
   exti.EXTI_Trigger = EXTI_Trigger_Falling;
   exti.EXTI_LineCmd = ENABLE;
   EXTI_Init(&exti);
-  //ASSUMPTION: The NVIC is enabled for the lines 0-1 in the dripper
+  //ASSUMPTION: The NVIC is enabled for the exti lines 0-1 in the dripper
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM16, ENABLE);//Initialize key timeout timer
   TIM_TimeBaseInitTypeDef ti;
@@ -52,19 +50,12 @@ void setup_keycard(void){
   TIM_ITConfig(TIM16,TIM_IT_Update,ENABLE);
   TIM_Cmd(TIM16, ENABLE);
 
-  //TODO: enable timer interrupt and zero key
   NVIC_InitTypeDef nvic;
   nvic.NVIC_IRQChannel = TIM16_IRQn;
   nvic.NVIC_IRQChannelPriority = 0x00;
   nvic.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&nvic);
 
-
-  //Setup TIM16 as key timeout
-  // Set roll over to ~2 seconds.
-  //   IF roll over then g_key_state==KEY_MISSING
-  //      g_key_code=0
-  //      g_key_pos=0
 }
 void TIM16_IRQHandler(void){
   if (TIM_GetITStatus(TIM16,TIM_IT_Update) != RESET){
@@ -73,13 +64,12 @@ void TIM16_IRQHandler(void){
       g_key_state=KEY_MISSING;
       g_key_code=0;
     }
-    // If the data sensor sees dark AND key is valid -> turn off
+    // If the data sensor sees dark AND key is valid -> turn off laser
     else if ((GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_1)) & (g_key_state==KEY_VALID)){
       g_key_pos=0;
       g_key_state=KEY_MISSING;
       g_key_code=0;
     }
-
     TIM_ClearITPendingBit(TIM16,TIM_IT_Update);
   }
 }
