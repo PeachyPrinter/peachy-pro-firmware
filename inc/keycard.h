@@ -14,10 +14,11 @@
 //#define KEY_MASTER 108
 #define KEY_MASTER 0b01101100
 #define KEY_LENGTH 8
+#define KEY_TIMEOUT 1000 //This should be in milliseconds - untested
 
 void setup_keycard(void);
 void read_key(void);
-void key_check(uint32_t key_bit);
+void key_check(uint8_t key_bit);
 void update_key_state(void);
 
 
