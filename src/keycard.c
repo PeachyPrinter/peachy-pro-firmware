@@ -40,9 +40,9 @@ void setup_keycard(void){
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM16, ENABLE);//Initialize key timeout timer
   TIM_TimeBaseInitTypeDef ti;
-  ti.TIM_Prescaler = 24000; //Should work 48MHz/4==12MHz, pre-scaler of 12k gives me 1ms ticks?
+  ti.TIM_Prescaler = 24000; //Should work 48MHz/2==24MHz, pre-scaler of 24k gives me 1ms ticks?
   ti.TIM_CounterMode = TIM_CounterMode_Up;
-  ti.TIM_Period = 1000; //in ms for ease of use
+  ti.TIM_Period = KEY_TIMEOUT; //in ms for ease of use
   ti.TIM_ClockDivision = TIM_CKD_DIV2;
   ti.TIM_RepetitionCounter = 0;
   TIM_TimeBaseInit(TIM16, &ti);
