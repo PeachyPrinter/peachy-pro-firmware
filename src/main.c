@@ -12,6 +12,7 @@
 #include "keycard.h"
 #include "ADClockout.h"
 #include "led_override.h"
+#include "overrides.h"
 
 #include <usb_core.h>
 #include <usb_cdc.h>
@@ -71,10 +72,11 @@ int main(void)
 	setupJP6();
 	setupLeds();
 
-	/*
-  initialize_led_override();
-  play_spin(); //Spin the led's while we load the rest of this stuff
-	*/
+	if (LED_OVERRIDES_EN){
+		initialize_led_override();
+		play_spin(); //Spin the led's while we load the rest of this stuff
+	}
+
 
   setup_keycard();
   initialize_pwm();
