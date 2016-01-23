@@ -1,27 +1,13 @@
 #!/bin/bash
 cd /home/peachyprinter/git/peachy-pro-firmware
 
-NOT_SAFE_DEFINES="
-	#ifndef INC_OVERRIDES_H_
-	#define INC_OVERRIDES_H_
+OVERRIDE_FILE="inc/overrides.h"
 
-	#define ADC_KEY_EN 0
-	#define INTERLOCK_KEY_EN 0
-	#define LED_OVERRIDES_EN 1
-
-	#endif"
-
-MASTER_DEFINES="
-	#ifndef INC_OVERRIDES_H_
-	#define INC_OVERRIDES_H_
-
-	#define ADC_KEY_EN 1
-	#define INTERLOCK_KEY_EN 1
-	#define LED_OVERRIDES_EN 0
-
-	#endif"
+NOT_SAFE_OVERRIDES="./overrides/not_safe_overrides.h"
+SAFE_OVERRIDES="./overrides/safe_overrides.h"
 
 MODE="UNKOWN"
+VERSION="$(./version.sh)"
 
 echo
 echo 'Is the Git repository at:' $PWD ' ?'
@@ -31,34 +17,36 @@ echo 'Short Programming pins and plug in usb (pins labeled JP4)'
 while true; do
 	echo 
 	echo ---------------------------
+	echo 'Checked out git:' $VERSION
 	echo 'Current git state:' $MODE
 	echo ---------------------------
-	echo 'CTRL + c to quit'
+	echo 'q) Quit (CTRL+c at any time)'
 	echo '1) program peachy'
-	echo '2) compile not_safe branch'
+	echo '2) recompile current files'
 	echo '3) compile master branch'
-	echo '4) recompile current files'
-	echo '5) merge master into not_safe'
-	read -p "Give option (1|2|3|4|5):" input
+	echo '4) compile not_safe branch'
+	echo '5) git pull'
+	echo '6) merge master into not_safe'
+	read -p "Give option (q|1|2|3|4|5|6):" input
 	
 	if [ $input == 1 ]; then
 		dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v -d 16d0:0af3
 	elif [ $input == 2 ]; then
-		git pull;
-		git checkout not_safe
-		echo $NOT_SAFE_DEFINES "> inc/overrides.h"
 		make
-		MODE="NOT_SAFE"
+		MODE="USER-COMPILED"
 	elif [ $input == 3 ]; then
-		git pull;
 		git checkout master 
-		echo $MASTER_DEFINES "> inc/overrides.h"
+		cp $SAFE_OVERRIDES $OVERRIDE_FILE
 		make
 		MODE="MASTER"
 	elif [ $input == 4 ]; then
+		git checkout not_safe
+		cp $NOT_SAFE_OVERRIDES $OVERRIDE_FILE
 		make
-		MODE="UNKOWN"
+		MODE="NOT_SAFE"
 	elif [ $input == 5 ]; then
+		git pull
+	elif [ $input == 6 ]; then
 		echo
 		echo ---------------------------
 		echo 'Please only do this if your name is Will'
@@ -69,5 +57,7 @@ while true; do
 		if [ "$merge" == "y" ]; then
 			source merge_master_not_safe.sh
 		fi
+	elif [ "$input" == "q" ]; then
+		exit
 	fi
 done
