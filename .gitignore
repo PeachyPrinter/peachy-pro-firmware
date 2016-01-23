@@ -8,3 +8,4 @@
 *.pyc
 python/venv
 inc/version.h
+inc/overrides.h
