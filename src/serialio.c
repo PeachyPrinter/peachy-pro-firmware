@@ -23,26 +23,22 @@ extern bool g_debug;
 void handle_move(unsigned char* buffer, int len);
 void handle_nack(unsigned char* buffer, int len);
 void handle_ack(unsigned char* buffer, int len);
-void handle_measure(unsigned char* buffer, int len);
 void handle_set_drip_count(unsigned char* buffer, int len);
 void handle_identify(unsigned char* buffer, int len);
 void handle_debug(unsigned char* buffer, int len);
 void handle_reboot_bootloader(unsigned char* buffer, int len);
 void handle_firmware_set(unsigned char* buffer, int len);
 void handle_get_adc_val(unsigned char* buffer, int len);
-void handle_return_adc_val(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {
   { NACK, &handle_nack },
   { ACK, &handle_ack },
   { MOVE, &handle_move }, 
-  { MEASURE, &handle_measure },
   { SET_DRIP_COUNT, &handle_set_drip_count },
   { IDENTIFY, &handle_identify },
 	{ DEBUG, &handle_debug },
 	{ ENTER_BOOTLOADER, &handle_reboot_bootloader },
 	{ GET_ADC_VAL, &handle_get_adc_val },
-	//{ RETURN_ADC_VAL, &handle_return_adc_val },
   { 0, 0 }
 };
 
@@ -84,17 +80,6 @@ void handle_get_adc_val(unsigned char* buffer, int len) {
 	*/
 }
 
-/*
-void handle_return_adc_val(unsigned char* buffer, int len) {
-  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
-  bool status;
-	ReturnAdcVal message;
-  status = pb_decode(&stream, ReturnAdcVal_fields, &message);
-  if(status) {
-
-	}
-}
-*/
 
 void handle_debug(unsigned char* buffer, int len) {
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
@@ -129,29 +114,6 @@ void handle_move(unsigned char* buffer, int len) {
     int write_idx = (move_start + move_count) % MOVE_SIZE;
     move_buffer[write_idx] = message;
     move_count++;
-  }
-}
-
-typedef struct {
-  uint32_t id;
-  uint16_t val;
-} measure_output_t;
-
-
-void handle_measure(unsigned char* buffer, int len) {
-  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
-  bool status;
-  Measure message;
-  measure_output_t out;
-
-  status = pb_decode(&stream, Measure_fields, &message);
-  if(status) {
-    out.id = message.id;
-    i2c_trigger_capture(message.channel);
-    delay_ms(10);
-    out.val = i2c_read_values();
-// TODO replace this with a real encoded thing
-    QueueTx((unsigned char*)&out, sizeof(out));
   }
 }
 

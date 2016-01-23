@@ -38,10 +38,3 @@ message IAm {
   required string sn = 3;
   required uint32 dataRate = 4;
 }
-
-//Measure the I2C A/D interface from testing
-message Measure {
-  required int32 id = 1;
-  required int32 channel = 2;
-}
-
