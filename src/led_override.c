@@ -22,7 +22,7 @@ uint8_t l_two_spin[8]={1,2,4,8,1,2,4,8};
 uint8_t l_left_right[4]={9,6,9,6};
 uint8_t* led_steps;
 
-uint8_t g_song_pos=0;
+uint8_t g_pattern_pos=0;
 
 void play_spin(){
   start_led_steps(l_two_spin,8);
@@ -30,14 +30,14 @@ void play_spin(){
 
 void start_led_steps(uint8_t new_steps[], uint8_t num_steps){
   led_steps=new_steps;
-  g_song_pos=num_steps;
+  g_pattern_pos=num_steps;
 }
 
 void next_led_step(){
   //g_song_pos must be >0 to enter this function
   //guarenteed in TIM15 interrupt handler
-  turn_leds_on(led_steps[g_song_pos-1]);
-  g_song_pos--;
+  turn_leds_on(led_steps[g_pattern_pos-1]);
+  g_pattern_pos--;
 }
 
 void turn_leds_on(uint8_t leds){
@@ -69,7 +69,7 @@ void initialize_led_override(void){
 }
 void TIM15_IRQHandler(void){
   if (TIM_GetITStatus(TIM15,TIM_IT_Update) != RESET){
-    if (g_song_pos!=0){
+    if (g_pattern_pos!=0){
       g_led_control=0; //turn off the normal led control while we play
       next_led_step();
     }
