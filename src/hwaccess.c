@@ -14,11 +14,13 @@ volatile uint16_t g_adcCal;
 volatile uint8_t g_adc_indexer=0;
 volatile uint32_t g_coil_twig_state=0;
 volatile uint32_t g_musicVar=0;
+volatile uint8_t g_led_control=1;
 
 extern volatile uint32_t tick;
 extern uint8_t g_adc_state;
 extern uint8_t g_adc_togglecount;
 extern uint8_t g_key_state;
+
 
 void twigCoils(){
   uint32_t max=0x3FFFF;//18 bits full range
@@ -233,20 +235,24 @@ void setJP5_PA7(uint8_t instate){
 	GPIO_WriteBit(GPIOA, GPIO_Pin_7, instate);
 }
 
-void setCoilLed(uint8_t instate){
-  GPIO_WriteBit(GPIOB, GPIO_Pin_14, instate);
+void setCornerLed(uint8_t instate){
+  if (g_led_control)
+    GPIO_WriteBit(GPIOB, GPIO_Pin_15, instate);
 }
 
-void setCornerLed(uint8_t instate){
-  GPIO_WriteBit(GPIOB, GPIO_Pin_15, instate);
+void setCoilLed(uint8_t instate){
+  if (g_led_control)
+    GPIO_WriteBit(GPIOB, GPIO_Pin_14, instate);
 }
 
 void setInLed(uint8_t instate){
-  GPIO_WriteBit(GPIOB, GPIO_Pin_13, instate); //Inside corner
+  if (g_led_control)
+    GPIO_WriteBit(GPIOB, GPIO_Pin_13, instate); //Inside corner
 }	
 
 void setUSBLed(uint8_t instate){
-  GPIO_WriteBit(GPIOB, GPIO_Pin_12, instate); //Inside corner
+  if (g_led_control)
+    GPIO_WriteBit(GPIOB, GPIO_Pin_12, instate); //Inside corner
 }
 
 void laser_on(void) {

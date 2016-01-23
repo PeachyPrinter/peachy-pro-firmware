@@ -94,6 +94,8 @@ void initialize_dripper(void) {
   nvic.NVIC_IRQChannelPriority = 0x00;
   nvic.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&nvic);
+
+  initialize_debouncer();
 }
 
 void send_updated_drip_count(void) {

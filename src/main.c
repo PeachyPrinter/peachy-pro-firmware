@@ -11,6 +11,7 @@
 #include "clock.h"
 #include "keycard.h"
 #include "ADClockout.h"
+#include "led_override.h"
 
 #include <usb_core.h>
 #include <usb_cdc.h>
@@ -70,15 +71,18 @@ int main(void)
 	setupJP6();
 	setupLeds();
 
+  initialize_led_override();
+  play_spin(); //Spin the led's while we load the rest of this stuff
+
   setup_keycard();
   initialize_pwm();
   initialize_dripper();
-  initialize_debouncer();
 
 	setCornerLed(0);
 	setInLed(0);
 	setCoilLed(0);
 	setUSBLed(0);
+
   
   SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 24KHz, so a count of 24000 should be 1 second?
 
