@@ -31,7 +31,8 @@ while true; do
 				echo ----------------------
     elif [ $input == 4 ]; then
 			echo
-			echo 'Please only do this if you know what you are doing - Will'
+			echo 'Please only do this if your name is Will'
+			echo 'Gavin.... Just stop'
 			read -p "Are you sure you want to merge? (y|N):" merge
 			if [ "$merge" == "y" ]; then
 				source merge_master_not_safe.sh
