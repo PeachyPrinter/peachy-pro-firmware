@@ -3,12 +3,14 @@
 #include "stm32f0xx_gpio.h"
 #include "stm32f0xx_exti.h"
 
-#include "keycard.h"
 #include "hwaccess.h"
+#include "led_override.h"
+#include "keycard.h"
 
 uint8_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
 uint32_t g_key_pos=0;
+uint8_t g_key_spin=0;
 
 void setup_keycard(void){
 
@@ -75,8 +77,11 @@ void TIM16_IRQHandler(void){
 }
 
 void update_key_state(void){
-  if (g_key_state==KEY_VALID)
+  if (g_key_state==KEY_VALID){
+    if (g_key_spin)
+      play_spin();
     setCornerLed(1);
+  }
   else if (g_key_state==KEY_CHECKING)
     setCornerLed(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_0)); //LED on clock sensor sees dark
   else
@@ -108,6 +113,7 @@ void key_check(uint8_t key_bit){
   if (g_key_pos==KEY_LENGTH){
     if (g_key_code==KEY_MASTER){
       g_key_state=KEY_VALID;
+      g_key_spin=1;
     }
     else{
       g_key_state=KEY_MISSING;

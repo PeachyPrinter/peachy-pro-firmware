@@ -11,7 +11,7 @@ uint8_t g_adc_state = ADC_LOCKOUT_MISSING;
 uint8_t g_adc_togglecount=0;
 
 void check_adcLockout(void){
-  if ((g_adcVals[ADC_LOCKOUT_POSITION]>ADC_MIN) & (g_adcVals[ADC_LOCKOUT_POSITION]<ADC_MAX)){
+  if ((g_adcVals[ADC_LOCKOUT_POSITION]<ADC_LOWER_LIMIT) | (g_adcVals[ADC_LOCKOUT_POSITION]>ADC_UPPER_LIMIT)){
     if (g_adc_state != ADC_LOCKOUT_VALID){
       g_adc_togglecount=0;
       g_adc_state = ADC_LOCKOUT_VALID;
@@ -19,7 +19,7 @@ void check_adcLockout(void){
   }
   else{
     g_adc_state = ADC_LOCKOUT_MISSING;
-    g_adc_togglecount=0;
+    g_adc_togglecount=ADC_TOGGLE_MAX;
   }
   adc_toggle_leds();
 }
