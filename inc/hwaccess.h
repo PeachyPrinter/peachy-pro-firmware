@@ -2,8 +2,9 @@
 #define __HWACCESS_H
 
 #define ADC_CHANS 4
-#define TEMP110_CAL ((uint16_t*) ((uint32_t) 0x1FFFF72C)) //32 bit pointer to a 16 bit uint
+#define TEMP110_CAL ((uint16_t*) ((uint32_t) 0x1FFFF7C2)) //32 bit pointer to a 16 bit uint
 #define TEMP30_CAL ((uint16_t*) ((uint32_t) 0x1FFFF7B8)) //32 bit pointer to a 16 bit uint
+#define VREFINT_CAL ((uint16_t*) ((uint32_t) 0x1FFFF7BA))
 
 void setupJP5(void);
 void setJP5_PA5(uint8_t);

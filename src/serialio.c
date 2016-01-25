@@ -91,29 +91,28 @@ void handle_get_adc_val(unsigned char* buffer, int len) {
 
     ReturnAdcVal message;
 
-    //message.adcVal=1337;
-    //Zero adc is the adc cal value, other ones count up
+    //As stuff gets added or switched out, software can keep the same numbers
     switch(adcNumber){
       case 0:
-        message.adcVal=g_adcCal;
+        message.adcVal=*VREFINT_CAL;
         break;
       case 1:
-        message.adcVal=123;
+        message.adcVal=*TEMP30_CAL;
         break;
       case 2:
-        message.adcVal=456;
+        message.adcVal=*TEMP110_CAL;
         break;
       case 3:
-        message.adcVal=g_adcVals[0];
+        message.adcVal=g_adcVals[0]; //PA2
         break;
       case 4:
-        message.adcVal=g_adcVals[1];
+        message.adcVal=g_adcVals[1]; //PA3
         break;
       case 5:
-        message.adcVal=g_adcVals[2];
+        message.adcVal=g_adcVals[2]; //Temperature
         break;
       case 6:
-        message.adcVal=g_adcVals[3];
+        message.adcVal=g_adcVals[3]; //Vref
         break;
       default:
         message.adcVal=0;

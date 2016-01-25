@@ -39,7 +39,6 @@ void delay_ms(int ms) {
 void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
-  updateADC();
   update_key_state();
   check_adcLockout();
   if(g_twig_coils){
@@ -93,6 +92,7 @@ int main(void)
 
   while(1) {
     serialio_feed();
+    updateADC();
     if (move_count!=0){
       g_twig_coils=0;
     }
