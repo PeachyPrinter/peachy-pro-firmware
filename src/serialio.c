@@ -7,6 +7,7 @@
 #include <i2c.h>
 #include <clock.h>
 #include "pwmout.h"
+#include "hwaccess.h"
 #include "version.h"
 #include "reprog.h"
 
@@ -15,6 +16,9 @@ extern volatile uint8_t move_start;
 extern volatile uint8_t move_count;
 extern Move move_buffer[MOVE_SIZE];
 extern bool g_debug;
+
+extern volatile uint16_t g_adcVals[ADC_CHANS];
+extern volatile uint16_t g_adcCal;
 
 #define HEADER 0x40
 #define FOOTER 0x41
@@ -68,16 +72,70 @@ void serialio_feed() {
 
 /*****************************************/
 /* Callbacks for handling messages */
+
 void handle_get_adc_val(unsigned char* buffer, int len) {
+  uint32_t adcNumber;
   pb_istream_t stream = pb_istream_from_buffer(buffer, len);
   bool status;
-	/*
-	GetAdcVal message;
+  GetAdcVal message;
   status = pb_decode(&stream, GetAdcVal_fields, &message);
-  if(status) {
+  if (status) {
+    adcNumber = message.adcNum;
+    //Works up to here, I get adcNum
 
+    pb_ostream_t ostream;
+    uint8_t outbuf[64]; //max size
+    ostream = pb_ostream_from_buffer(outbuf, 64);
+    uint8_t type = RETURN_ADC_VAL;
+    pb_write(&ostream, &type, 1);
+
+    ReturnAdcVal message;
+
+    //message.adcVal=1337;
+    //Zero adc is the adc cal value, other ones count up
+    switch(adcNumber){
+      case 0:
+        message.adcVal=g_adcCal;
+        break;
+      case 1:
+        message.adcVal=123;
+        break;
+      case 2:
+        message.adcVal=456;
+        break;
+      case 3:
+        message.adcVal=g_adcVals[0];
+        break;
+      case 4:
+        message.adcVal=g_adcVals[1];
+        break;
+      case 5:
+        message.adcVal=g_adcVals[2];
+        break;
+      case 6:
+        message.adcVal=g_adcVals[3];
+        break;
+      default:
+        message.adcVal=0;
+        break;
+    }
+
+    /*
+    if (adcNumber < ADC_CHANS+1){
+      if (adcNumber==0)
+        message.adcVal=g_adcCal;
+      else
+        message.adcVal = g_adcVals[adcNumber-1];
+    }
+    else
+      message.adcVal = 0; //just in case they ask for outside numbers, deals with stack overflow
+    */
+
+    if(!pb_encode(&ostream, ReturnAdcVal_fields, &message)) {
+      return;
+    }
+    serialio_write(outbuf, ostream.bytes_written);
 	}
-	*/
 }
 
 

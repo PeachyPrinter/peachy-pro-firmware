@@ -14,6 +14,7 @@ echo 'Is the Git repository at:' $PWD ' ?'
 echo 'if not change path inside script'
 echo
 echo 'Short Programming pins and plug in usb (pins labeled JP4)'
+
 while true; do
 	echo 
 	echo ---------------------------
@@ -46,6 +47,7 @@ while true; do
 		MODE="NOT_SAFE"
 	elif [ $input == 5 ]; then
 		git pull
+		VERSION="$(./version.sh)"
 	elif [ $input == 6 ]; then
 		echo
 		echo ---------------------------

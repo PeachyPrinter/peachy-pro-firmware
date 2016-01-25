@@ -15,5 +15,6 @@ void initialize_led_override(void);
 void next_led_step(void);
 void start_led_steps(uint8_t new_steps[], uint8_t num_steps);
 void next_led_step(void);
+void play_spin();
 
 #endif /* INC_LED_OVERRIDE_H_ */
