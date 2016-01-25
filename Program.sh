@@ -27,8 +27,9 @@ while true; do
 	echo '3) compile master branch'
 	echo '4) compile not_safe branch'
 	echo '5) git pull'
-	echo '6) merge master into not_safe'
-	read -p "Give option (q|1|2|3|4|5|6):" input
+	echo '6) reset local git files'
+	echo '7) merge master into not_safe'
+	read -p "Give option (q|1|2|3|4|5|6|7):" input
 	
 	if [ $input == 1 ]; then
 		dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v -d 16d0:0af3
@@ -49,6 +50,22 @@ while true; do
 		git pull
 		VERSION="$(./version.sh)"
 	elif [ $input == 6 ]; then
+		echo
+		echo ---------------------------
+		echo 'CAUTION: This will remove all your modified files'
+		echo '         This deletes files and re-pulls'
+		echo ---------------------------
+		echo
+		read -p "Are you sure you want to start over? (y|N):" choice
+		if [ "$choice" == "y" ]; then
+			git rm --cached -r .
+			git reset --hard
+			git checkout master
+			cp $SAFE_OVERRIDES $OVERRIDE_FILE
+			make
+			MODE="MASTER"
+		fi
+	elif [ $input == 7 ]; then
 		echo
 		echo ---------------------------
 		echo 'Please only do this if your name is Will'
