@@ -78,8 +78,10 @@ void TIM16_IRQHandler(void){
 
 void update_key_state(void){
   if (g_key_state==KEY_VALID){
-    if (g_key_spin)
+    if (g_key_spin){
       play_spin();
+      g_key_spin=0;
+    }
     setCornerLed(1);
   }
   else if (g_key_state==KEY_CHECKING)
