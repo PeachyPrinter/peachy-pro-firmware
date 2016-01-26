@@ -12,8 +12,8 @@
 #define KEY_CHECKING 1
 #define KEY_MISSING 0
 //#define KEY_MASTER 108
-#define KEY_MASTER 0b01101100
-#define KEY_LENGTH 8
+#define KEY_MASTER 0b0010
+#define KEY_LENGTH 4
 #define KEY_TIMEOUT 1000 //This should be in milliseconds - untested
 
 #define KEY_TONE_LENGTH 250 //beep ON/OFF time (Time per half cycle)
