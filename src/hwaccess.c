@@ -50,6 +50,11 @@ void twigCoils(){
   }
   else if (g_coil_twig_state==4){ //BEEP TIME!
     setUSBLed(1);
+    buzzCoilStep();
+  }
+}
+
+void buzzCoilStep(){
     if (g_musicVar){
       g_musicVar=0;
       set_pwm(g_musicVar,g_musicVar,0);
@@ -58,7 +63,6 @@ void twigCoils(){
       g_musicVar=0x3FFFF;
       set_pwm(g_musicVar,g_musicVar,0);
     }
-  }
 }
 
 void setupJP6(){

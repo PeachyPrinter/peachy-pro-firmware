@@ -19,6 +19,7 @@ void setupADC();
 void setupTIM1();
 void adcCal(void);
 void twigCoils(void);
+void buzzCoilStep();
 
 void setupJP6(void);
 
