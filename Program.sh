@@ -41,11 +41,13 @@ while true; do
 		cp $SAFE_OVERRIDES $OVERRIDE_FILE
 		make
 		MODE="MASTER"
+		VERSION="$(./version.sh)"
 	elif [ $input == 4 ]; then
 		git checkout not_safe
 		cp $NOT_SAFE_OVERRIDES $OVERRIDE_FILE
 		make
 		MODE="NOT_SAFE"
+		VERSION="$(./version.sh)"
 	elif [ $input == 5 ]; then
 		git pull
 		VERSION="$(./version.sh)"
