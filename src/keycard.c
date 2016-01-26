@@ -11,6 +11,10 @@ uint8_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
 uint32_t g_key_pos=0;
 uint8_t g_key_spin=0;
+uint32_t g_key_beeps=0;
+uint32_t g_key_beep_counter=0;
+
+extern int g_key_coil_gate;
 
 void setup_keycard(void){
 
@@ -81,6 +85,10 @@ void update_key_state(void){
     if (g_key_spin){
       play_spin();
       g_key_spin=0;
+    }
+    if (g_key_coil_gate){
+      g_key_beeps=KEY_TONE_NUM_BEEPS;
+      g_key_beep_counter=KEY_TONE_LENGTH;
     }
     setCornerLed(1);
   }

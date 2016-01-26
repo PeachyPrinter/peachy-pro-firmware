@@ -20,16 +20,18 @@
 
 extern volatile uint32_t g_dripcount;
 extern volatile uint32_t g_dripghosts;
-extern volatile uint32_t g_adcVals[ADC_CHANS];
-extern volatile uint16_t g_adcCal;
+extern uint32_t g_key_beeps;
+extern uint32_t g_key_beep_counter;
 
 volatile uint32_t tick = 0;
 bool g_debug=0;
 bool g_checkcoils=1;
 bool g_twig_coils=1;
+int g_key_coil_gate=1;
 uint8_t move_start = 0;
 uint8_t move_count = 0;
 Move move_buffer[MOVE_SIZE];
+
 
 void delay_ms(int ms) {
   uint32_t end = tick + (ms*2);
@@ -43,6 +45,15 @@ void SysTick_Handler(void) {
   check_adcLockout();
   if(g_twig_coils){
     twigCoils();
+  }
+  if(g_key_coil_gate){
+    if (g_key_beeps&0x1){ //beep on odd counts
+      buzzCoilStep();
+    }
+    g_key_beep_counter--;
+    if (g_key_beep_counter==0){
+      g_key_beeps--;
+    }
   }
 }
 
@@ -71,8 +82,8 @@ int main(void)
 	setupJP6();
 	setupLeds();
 
+	initialize_led_override();
 	if (LED_OVERRIDES_EN){
-		initialize_led_override();
 		play_spin(); //Spin the led's while we load the rest of this stuff
 	}
 
@@ -95,6 +106,7 @@ int main(void)
     updateADC();
     if (move_count!=0){
       g_twig_coils=0;
+      g_key_coil_gate=0;
     }
     if (g_dripcount != last_drip_count) {
       last_drip_count = g_dripcount;
