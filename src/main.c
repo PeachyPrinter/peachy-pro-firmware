@@ -43,10 +43,8 @@ void SysTick_Handler(void) {
   update_pwm();
   update_key_state();
   check_adcLockout();
-  if(g_twig_coils){
-    twigCoils();
-  }
-  if(g_key_coil_gate){
+
+  if(g_key_coil_gate & g_key_beeps){
     if (g_key_beeps&0x1){ //beep on odd counts
       buzzCoilStep();
     }
@@ -54,6 +52,9 @@ void SysTick_Handler(void) {
     if (g_key_beep_counter==0){
       g_key_beeps--;
     }
+  }
+  else if(g_twig_coils){
+    twigCoils();
   }
 }
 
