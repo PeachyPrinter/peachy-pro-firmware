@@ -18,7 +18,6 @@ extern Move move_buffer[MOVE_SIZE];
 extern bool g_debug;
 
 extern volatile uint16_t g_adcVals[ADC_CHANS];
-extern volatile uint16_t g_adcCal;
 
 #define HEADER 0x40
 #define FOOTER 0x41
@@ -31,7 +30,6 @@ void handle_set_drip_count(unsigned char* buffer, int len);
 void handle_identify(unsigned char* buffer, int len);
 void handle_debug(unsigned char* buffer, int len);
 void handle_reboot_bootloader(unsigned char* buffer, int len);
-void handle_firmware_set(unsigned char* buffer, int len);
 void handle_get_adc_val(unsigned char* buffer, int len);
 
 static type_callback_map_t callbacks[] = {

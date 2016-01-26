@@ -5,7 +5,6 @@
 extern volatile uint8_t move_start;
 extern volatile uint8_t move_count;
 extern Move move_buffer[MOVE_SIZE];
-extern bool g_debug;
 
 void initialize_pwm(void) {
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);

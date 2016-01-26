@@ -10,11 +10,9 @@
 uint8_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
 uint32_t g_key_pos=0;
-uint8_t g_key_spin=0;
 uint32_t g_key_beeps=0;
 uint32_t g_key_beep_counter=0;
 
-extern int g_key_coil_gate;
 
 void setup_keycard(void){
 
@@ -82,14 +80,6 @@ void TIM16_IRQHandler(void){
 
 void update_key_state(void){
   if (g_key_state==KEY_VALID){
-    if (g_key_spin){
-      play_spin();
-      g_key_spin=0;
-    }
-    if (g_key_coil_gate){
-      g_key_beeps=KEY_TONE_NUM_BEEPS;
-      g_key_beep_counter=KEY_TONE_LENGTH;
-    }
     setCornerLed(1);
   }
   else if (g_key_state==KEY_CHECKING)
@@ -123,7 +113,11 @@ void key_check(uint8_t key_bit){
   if (g_key_pos==KEY_LENGTH){
     if (g_key_code==KEY_MASTER){
       g_key_state=KEY_VALID;
-      g_key_spin=1;
+
+      //Let the user know ALL THE WAYS
+      g_key_beeps=KEY_TONE_NUM_BEEPS;
+      g_key_beep_counter=KEY_TONE_LENGTH;
+      play_spin();
     }
     else{
       g_key_state=KEY_MISSING;

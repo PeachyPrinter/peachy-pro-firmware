@@ -87,7 +87,6 @@ int main(void)
 		play_spin(); //Spin the led's while we load the rest of this stuff
 	}
 
-
   setup_keycard();
   initialize_pwm();
   initialize_dripper();
