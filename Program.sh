@@ -43,7 +43,7 @@ while true; do
 		MODE="MASTER"
 		VERSION="$(./version.sh)"
 	elif [ $input == 4 ]; then
-		git checkout not_safe
+		#git checkout not_safe
 		cp $NOT_SAFE_OVERRIDES $OVERRIDE_FILE
 		make
 		MODE="NOT_SAFE"
