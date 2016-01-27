@@ -12,7 +12,10 @@
 #include "led_override.h"
 #include "overrides.h"
 
+
 extern volatile uint8_t g_led_control;
+
+uint8_t g_led_current_pattern=0;
 
 //Led Locations:
 //[8,4]
@@ -20,14 +23,28 @@ extern volatile uint8_t g_led_control;
 //add numbers to together to turn multiple on
 uint8_t l_two_spin[9]={1,2,4,8,1,2,4,8,0};
 uint8_t l_four_spin[17]={1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,0};
-uint8_t l_long_spin[52]={1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0};
+uint8_t l_long_spin[53]={0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0};
 uint8_t l_left_right[4]={9,6,9,6};
+uint8_t l_blink_four[34]={0,0,15,15,0,0,15,15,0,0,15,15,0,0,15,15,0,0,15,15,0,0,15,15,0,0,15,15,0,0,15,15,0,0};
 uint8_t* led_steps;
 
 uint8_t g_pattern_pos=0;
 
-void play_spin(){
-  start_led_steps(l_long_spin,52);
+void play_long_spin(){
+  start_led_steps(l_long_spin,53);
+	g_led_current_pattern=L_LONG_SPIN;
+}
+
+void stop_led_steps(uint8_t pattern){
+	if (g_led_current_pattern==pattern){
+		g_pattern_pos=0;
+		turn_leds_on(0);
+	}
+}
+
+void play_blink_four(){
+	start_led_steps(l_blink_four,34);
+	g_led_current_pattern=L_BLINK_FOUR;
 }
 
 void start_led_steps(uint8_t new_steps[], uint8_t num_steps){
@@ -38,8 +55,10 @@ void start_led_steps(uint8_t new_steps[], uint8_t num_steps){
 void next_led_step(){
   //g_song_pos must be >0 to enter this function
   //guarenteed in TIM17 interrupt handler
-  turn_leds_on(led_steps[g_pattern_pos-1]);
-  g_pattern_pos--;
+	if (g_pattern_pos){
+		turn_leds_on(led_steps[g_pattern_pos-1]);
+		g_pattern_pos--;
+	}
 }
 
 void turn_leds_on(uint8_t leds){

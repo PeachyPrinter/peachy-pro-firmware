@@ -38,13 +38,9 @@ void delay_ms(int ms) {
   while(tick < end);
 }
 
-void SysTick_Handler(void) {
-  tick += 1;
-  update_pwm();
-  update_key_state();
-  check_adcLockout();
-
+void coilBuzzer(void){
   if((g_key_coil_gate==1) & (g_key_beeps>0)){
+
     if ((g_key_beeps&0x1)==1){ //beep on odd counts
       buzzCoilStep();
     }
@@ -57,6 +53,14 @@ void SysTick_Handler(void) {
   else if(g_twig_coils){
     twigCoils();
   }
+}
+
+void SysTick_Handler(void) {
+  tick += 1;
+  update_pwm();
+  update_key_state();
+  check_adcLockout();
+	coilBuzzer();
 }
 
 void init_serial_number() {
@@ -86,7 +90,7 @@ int main(void)
 
 	initialize_led_override();
 	if (LED_OVERRIDES_EN){
-		play_spin(); //Spin the led's while we load the rest of this stuff
+		play_long_spin(); //Spin the led's while we load the rest of this stuff
 	}
 
   setup_keycard();

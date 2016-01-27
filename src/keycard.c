@@ -82,10 +82,13 @@ void update_key_state(void){
   if (g_key_state==KEY_VALID){
     setCornerLed(1);
   }
-  else if (g_key_state==KEY_CHECKING)
+  else if (g_key_state==KEY_CHECKING){
     setCornerLed(GPIO_ReadInputDataBit(GPIOF, GPIO_Pin_0)); //LED on clock sensor sees dark
-  else
+	}
+  else{
     setCornerLed(0);
+		stop_led_steps(L_LONG_SPIN);
+	}
 }
 
 void read_key(void){
@@ -99,6 +102,7 @@ void key_check(uint8_t key_bit){
     g_key_state=KEY_MISSING;
     g_key_pos=0;
     g_key_code=0;
+		stop_led_steps(L_LONG_SPIN);
   }
   //else, if we need more bits, add em in!
   else if ((g_key_state==KEY_CHECKING) || (g_key_state==KEY_MISSING)){
@@ -117,7 +121,7 @@ void key_check(uint8_t key_bit){
       //Let the user know ALL THE WAYS
       g_key_beeps=KEY_TONE_NUM_BEEPS;
       g_key_beep_counter=KEY_TONE_LENGTH;
-      play_spin();
+      play_long_spin();
     }
     else{
       g_key_state=KEY_MISSING;
