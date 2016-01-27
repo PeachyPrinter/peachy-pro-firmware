@@ -18,7 +18,6 @@ volatile uint8_t g_led_control=1;
 
 extern volatile uint32_t tick;
 extern uint8_t g_adc_state;
-extern uint8_t g_adc_togglecount;
 extern uint8_t g_key_state;
 
 
@@ -275,8 +274,7 @@ void laser_on(void) {
 
 void laser_off(void) {
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, 0);
-  if (g_adc_togglecount==ADC_TOGGLE_MAX)
-    setInLed(0);
+  setInLed(0);
 }
 
 uint8_t getDebugSwitch(){

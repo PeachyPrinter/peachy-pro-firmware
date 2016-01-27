@@ -90,7 +90,6 @@ void update_key_state(void){
 	}
   else{
     setCornerLed(0);
-		stop_led_steps(L_LONG_SPIN);
 	}
 }
 
@@ -114,6 +113,7 @@ void key_check(uint8_t key_bit){
     g_key_code+=key_bit<<g_key_pos;
     g_key_pos++;
     g_key_state=KEY_CHECKING;
+		stop_led_steps(L_LONG_SPIN);
   }
 
   //If we have 8 bits of the code, check it now

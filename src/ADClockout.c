@@ -22,7 +22,7 @@ void check_adcLockout(void){
   }
   else{
     g_adc_state = ADC_LOCKOUT_MISSING;
-    g_adc_togglecount=ADC_TOGGLE_MAX;
+    //g_adc_togglecount=ADC_TOGGLE_MAX;
 		stop_led_steps(L_BLINK_FOUR);
   }
 	//adc_toggle_leds();
