@@ -44,7 +44,7 @@ void SysTick_Handler(void) {
   update_key_state();
   check_adcLockout();
 
-  if(g_key_coil_gate & g_key_beeps){
+  if((g_key_coil_gate==1) & (g_key_beeps>0)){
     if (g_key_beeps&0x1){ //beep on odd counts
       buzzCoilStep();
     }
