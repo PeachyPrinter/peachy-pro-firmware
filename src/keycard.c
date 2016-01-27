@@ -6,6 +6,8 @@
 #include "hwaccess.h"
 #include "led_override.h"
 #include "keycard.h"
+#include "ADClockout.h"
+
 
 uint8_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
@@ -13,6 +15,7 @@ uint32_t g_key_pos=0;
 uint32_t g_key_beeps=0;
 uint32_t g_key_beep_counter=0;
 
+extern uint8_t g_adc_state;
 
 void setup_keycard(void){
 
@@ -79,7 +82,7 @@ void TIM16_IRQHandler(void){
 }
 
 void update_key_state(void){
-  if (g_key_state==KEY_VALID){
+  if ((g_key_state==KEY_VALID) & (g_adc_state==ADC_LOCKOUT_VALID)){
     setCornerLed(1);
   }
   else if (g_key_state==KEY_CHECKING){
