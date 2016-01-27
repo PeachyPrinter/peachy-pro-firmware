@@ -48,9 +48,10 @@ void SysTick_Handler(void) {
     if ((g_key_beeps&0x1)==1){ //beep on odd counts
       buzzCoilStep();
     }
-    g_key_beep_counter--;
+    g_key_beep_counter=g_key_beep_counter-1;
     if (g_key_beep_counter==0){
-      g_key_beeps--;
+      g_key_beeps=g_key_beeps-1;
+      g_key_beep_counter=KEY_TONE_LENGTH;
     }
   }
   else if(g_twig_coils){
