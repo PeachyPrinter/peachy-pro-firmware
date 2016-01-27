@@ -16,8 +16,8 @@
 #define KEY_LENGTH 4
 #define KEY_TIMEOUT 1000 //This should be in milliseconds - untested
 
-#define KEY_TONE_LENGTH 200 //beep ON/OFF time (Time per half cycle)
-#define KEY_TONE_NUM_BEEPS 8 //NOTE: this is 2x number of beeps you want (counts half cycles)
+#define KEY_TONE_LENGTH 100 //beep ON/OFF time (Time per half cycle)
+#define KEY_TONE_NUM_BEEPS 64 //NOTE: this is 2x number of beeps you want (counts half cycles)
 
 void setup_keycard(void);
 void read_key(void);

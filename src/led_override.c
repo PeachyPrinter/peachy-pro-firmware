@@ -20,14 +20,14 @@ extern volatile uint8_t g_led_control;
 //add numbers to together to turn multiple on
 uint8_t l_two_spin[9]={1,2,4,8,1,2,4,8,0};
 uint8_t l_four_spin[17]={1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,0};
-uint8_t l_three_spin[52]={1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0};
+uint8_t l_long_spin[52]={1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0,1,2,4,8,1,2,4,8,1,2,4,8,0};
 uint8_t l_left_right[4]={9,6,9,6};
 uint8_t* led_steps;
 
 uint8_t g_pattern_pos=0;
 
 void play_spin(){
-  start_led_steps(l_four_spin,17);
+  start_led_steps(l_long_spin,52);
 }
 
 void start_led_steps(uint8_t new_steps[], uint8_t num_steps){
