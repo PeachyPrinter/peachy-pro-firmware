@@ -12,22 +12,67 @@
 
 #include "messages.pb.h"
 
+extern volatile uint32_t tick;
 
 volatile uint32_t g_dripcount = 0;
 volatile uint32_t g_dripghosts = 0;
-uint32_t g_driptime=100; // 100 milliseconds (~0.001 second per timer tick)
+uint16_t g_drip_toggle_count=0;
+uint32_t g_next_drip_tick=0;
+uint32_t g_start_drip_tick=0;
+uint16_t g_drip_state=DRIPPER_IDLE;
 
 void EXTI0_1_IRQHandler(void) {
   //Dripper
   setCoilLed(1);
-  if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if not reset
-    if (TIM14->CNT > g_driptime){ //if timer is longer than minimum, incriment drips
-      g_dripcount++;
-      TIM14->CNT=0; //zero it for next time
+  if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if it's the dripper that called this
+
+    //Start off from idle state
+    if (g_drip_state==DRIPPER_IDLE){
+      //IF IDLE, start a new count
+      g_drip_toggle_count=1;
+      g_start_drip_tick=tick;
+      g_next_drip_tick=g_start_drip_tick+DRIP_TICKS_PER_TOGGLE_MAX;
+      g_drip_state=DRIPPER_CHECKING;
     }
-    else{
-      g_dripghosts++;
+    else if (g_drip_state==DRIPPER_DEAD){
+      //if timer is longer than minimum, reset state
+      if (TIM14->CNT > DRIP_DEADTIME){
+        g_drip_state=DRIPPER_IDLE;
+      }
     }
+    else if (g_drip_state == DRIPPER_CHECKING){ //the else/if is redundant for now
+
+      //Roll over case... once every 2^32 * 0.25ms this thing MIGHT miss a drip.
+      // That's like once every 12 days... one drip every 12 days
+      // Keep in mind that had to be hit DURING the timeout period
+      // (~10ms window every 12 days) ... I hope this happens at least once
+      //.
+      //.... I'm glad I wrote this .....
+
+      if (g_next_drip_tick<g_start_drip_tick){ //Roll over case..
+        //The tick can be less than next drip, OR more than the start drip
+        if ((tick<g_next_drip_tick)|(tick>g_start_drip_tick)){
+          g_drip_toggle_count++;
+        }
+        else{ //ghost edge, kick this back to idle
+          g_drip_state=DRIPPER_IDLE;
+        }
+      }
+      //The normal case
+      else if (tick<g_next_drip_tick){
+        g_drip_toggle_count++;
+      }
+      else{ //else this was a ghost edge, keep waiting for a drip
+        g_drip_state=DRIPPER_IDLE;
+      }
+
+      //If we got enough drip toggles, we got a verified drip!
+      if (g_drip_toggle_count>DRIP_TOGGLES){
+        g_dripcount++; //GOOD DRIP
+        TIM14->CNT=0;  //zero the deadtime counter
+        g_drip_state=DRIPPER_DEAD;
+      }
+    } //DRIPPER_CHECKING
     EXTI_ClearITPendingBit(EXTI_Line1);
   }
   //Key Clock

@@ -55,12 +55,19 @@ void coilBuzzer(void){
   }
 }
 
+void toggle_dripper(){
+  uint8_t ndripper_toggle_bit;
+	ndripper_toggle_bit = !(GPIO_ReadOutputDataBit(GPIOA,GPIO_Pin_0));
+	GPIO_WriteBit(GPIOA, GPIO_Pin_0,ndripper_toggle_bit);
+}
+
 void SysTick_Handler(void) {
   tick += 1;
   update_pwm();
   update_key_state();
   check_adcLockout();
 	coilBuzzer();
+	toggle_dripper();
 }
 
 void init_serial_number() {
