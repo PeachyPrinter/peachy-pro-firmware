@@ -152,7 +152,7 @@ void handle_reboot_bootloader(unsigned char* buffer, int len) {
   EnterBootloader message;
   status = pb_decode(&stream, SetDebug_fields, &message);
   if (status) {
-		wipeFlash();
+		RebootToBootloader();
   }
 }
 

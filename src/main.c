@@ -85,6 +85,8 @@ void init_serial_number() {
 
 int main(void)
 {
+	bootloaderSwitcher();
+
   init_serial_number();
 	USB_Start();
   
