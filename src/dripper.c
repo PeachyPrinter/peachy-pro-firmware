@@ -49,18 +49,20 @@ void EXTI0_1_IRQHandler(void) {
       //.
       //.... I'm glad I wrote this .....
 
-      /*
+
       if (g_next_drip_tick<g_start_drip_tick){ //Roll over case..
         //The tick can be less than next drip, OR more than the start drip
         if ((tick<g_next_drip_tick)|(tick>g_start_drip_tick)){
           g_drip_toggle_count++;
+          g_start_drip_tick=tick; //Reset the ticks for next one
+          g_next_drip_tick=g_start_drip_tick+DRIP_TICKS_PER_TOGGLE_MAX;
         }
         else{ //ghost edge, kick this back to idle
           g_drip_state=DRIPPER_IDLE;
         }
       }
       //The normal case
-      else*/ if (tick<g_next_drip_tick){
+      else if (tick<g_next_drip_tick){
         g_drip_toggle_count++; //Got a good toggle
         g_start_drip_tick=tick; //Reset the ticks for next one
         g_next_drip_tick=g_start_drip_tick+DRIP_TICKS_PER_TOGGLE_MAX;
