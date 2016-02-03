@@ -38,7 +38,6 @@ static type_callback_map_t callbacks[] = {
   { MOVE, &handle_move }, 
   { SET_DRIP_COUNT, &handle_set_drip_count },
   { IDENTIFY, &handle_identify },
-	{ DEBUG, &handle_debug },
 	{ ENTER_BOOTLOADER, &handle_reboot_bootloader },
 	{ GET_ADC_VAL, &handle_get_adc_val },
   { 0, 0 }
@@ -117,17 +116,6 @@ void handle_get_adc_val(unsigned char* buffer, int len) {
         break;
     }
 
-    /*
-    if (adcNumber < ADC_CHANS+1){
-      if (adcNumber==0)
-        message.adcVal=g_adcCal;
-      else
-        message.adcVal = g_adcVals[adcNumber-1];
-    }
-    else
-      message.adcVal = 0; //just in case they ask for outside numbers, deals with stack overflow
-    */
-
     if(!pb_encode(&ostream, ReturnAdcVal_fields, &message)) {
       return;
     }
@@ -136,24 +124,8 @@ void handle_get_adc_val(unsigned char* buffer, int len) {
 }
 
 
-void handle_debug(unsigned char* buffer, int len) {
-  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
-  bool status;
-  SetDebug message;
-  status = pb_decode(&stream, SetDebug_fields, &message);
-  if (status) {
-    g_debug = message.debug;
-  }
-}
-
 void handle_reboot_bootloader(unsigned char* buffer, int len) {
-  pb_istream_t stream = pb_istream_from_buffer(buffer, len);
-  bool status;
-  EnterBootloader message;
-  status = pb_decode(&stream, SetDebug_fields, &message);
-  if (status) {
-		RebootToBootloader();
-  }
+	RebootToBootloader();
 }
 
 void handle_move(unsigned char* buffer, int len) {

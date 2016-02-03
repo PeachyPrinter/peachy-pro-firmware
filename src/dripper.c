@@ -15,7 +15,6 @@
 extern volatile uint32_t tick;
 
 volatile uint32_t g_dripcount = 0;
-volatile uint32_t g_dripghosts = 0;
 uint16_t g_drip_toggle_count=0;
 uint32_t g_next_drip_tick=0;
 uint32_t g_start_drip_tick=0;
@@ -159,7 +158,6 @@ void send_updated_drip_count(void) {
   pb_write(&stream, &type, 1);
 
   record.drips = g_dripcount;
-  record.ghostDrips = g_dripghosts;
   status = pb_encode(&stream, DripRecorded_fields, &record);
   if (status) {
     serialio_write(out, stream.bytes_written);

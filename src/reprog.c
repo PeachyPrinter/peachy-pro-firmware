@@ -22,7 +22,6 @@ void RebootToBootloader(){
   // lib/cmsis_boot/startup/startup_stm32f0xx.s
   // We should be able to get away not re-loading them, and letting the reset function go
   // The other option is overriding the Reset_Handler function and doing the loading ourselves
-  // This function should be first called in the main.c
 	
 	//Steps:
 	//1) Set magic value at magic place in ram
