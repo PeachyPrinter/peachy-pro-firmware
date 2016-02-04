@@ -2,7 +2,7 @@
 #define __DRIPPER_H
 
 #define DRIP_DEADTIME 100
-#define DRIP_TOGGLES 10
+#define DRIP_TOGGLES 3
 #define DRIP_TICKS_PER_TOGGLE_MAX 5 //
 
 #define DRIPPER_IDLE 0
