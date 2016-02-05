@@ -12,8 +12,13 @@
 #include "led_override.h"
 #include "overrides.h"
 
+#define LASER_HACK 1
+
+uint8_t g_laser_on, g_laser_coarse;
+uint8_t g_laser_count=0;
 
 extern volatile uint8_t g_led_control;
+
 
 uint8_t g_led_current_pattern=0;
 
@@ -71,6 +76,7 @@ void turn_leds_on(uint8_t leds){
 void initialize_led_override(void){
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM17, ENABLE);//Initialize key timeout timer
 
+#if(!LASER_HACK)
   TIM_TimeBaseInitTypeDef ti;
   ti.TIM_Prescaler = 24000; //Should work 48MHz/2==24MHz, pre-scaler of 24k gives me 1ms ticks?
   ti.TIM_CounterMode = TIM_CounterMode_Up;
@@ -78,6 +84,16 @@ void initialize_led_override(void){
   ti.TIM_ClockDivision = TIM_CKD_DIV2;
   ti.TIM_RepetitionCounter = 0;
   TIM_TimeBaseInit(TIM17, &ti);
+#else
+  TIM_TimeBaseInitTypeDef ti;
+  ti.TIM_Prescaler = 1200; //Should work 48MHz/2==24MHz, pre-scaler of 1.2k gives me 0.05ms ticks?
+  ti.TIM_CounterMode = TIM_CounterMode_Up;
+  ti.TIM_Period = 5; //Every 0.25ms I update my software PWM
+  ti.TIM_ClockDivision = TIM_CKD_DIV2;
+  ti.TIM_RepetitionCounter = 0;
+  TIM_TimeBaseInit(TIM17, &ti);
+
+#endif
 
   TIM_ITConfig(TIM17,TIM_IT_Update,ENABLE);
   TIM_Cmd(TIM17, ENABLE);
@@ -90,6 +106,7 @@ void initialize_led_override(void){
 }
 void TIM17_IRQHandler(void){
   if (TIM_GetITStatus(TIM17,TIM_IT_Update) != RESET){
+#if(!LASER_HACK)
     if (g_pattern_pos!=0){
       g_led_control=0; //turn off the normal led control while we play
       next_led_step();
@@ -98,6 +115,19 @@ void TIM17_IRQHandler(void){
       g_led_control=1; //led control as normal
     }
 
+#else
+    if (g_laser_on){
+      if (g_laser_count < (g_laser_coarse+1)){
+        laser_on();
+      }
+      else
+        laser_off();
+    }
+    else{
+      laser_off();
+    }
+    g_laser_count = (g_laser_count+1) & 0b111;
+#endif
   }
   TIM_ClearITPendingBit(TIM17,TIM_IT_Update);
 }

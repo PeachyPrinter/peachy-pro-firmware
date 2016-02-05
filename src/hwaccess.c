@@ -16,6 +16,7 @@ volatile uint32_t g_coil_twig_state=0;
 volatile uint32_t g_musicVar=0;
 volatile uint8_t g_led_control=1;
 
+
 extern volatile uint32_t tick;
 extern uint8_t g_adc_state;
 extern uint8_t g_key_state;
