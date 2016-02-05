@@ -42,9 +42,9 @@ void EXTI0_1_IRQHandler(void) {
     else if (g_drip_state == DRIPPER_CHECKING){ //the else/if is redundant for now
 
       //Roll over case... once every 2^32 * 0.25ms this thing MIGHT miss a drip.
-      // That's like once every 12 days... one drip every 12 days
+      // That's like once every 47 days... one drip every 47 days
       // Keep in mind that had to be hit DURING the timeout period
-      // (~10ms window every 12 days) ... I hope this happens at least once
+      // (~10ms window every 47 days) ... I hope this happens at least once
       //.
       //.... I'm glad I wrote this .....
 
