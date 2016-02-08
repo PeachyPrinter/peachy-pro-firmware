@@ -12,7 +12,7 @@
 #include "led_override.h"
 #include "overrides.h"
 
-#define LASER_HACK 1
+#define LASER_HACK 0
 
 uint8_t g_laser_on, g_laser_coarse;
 uint8_t g_laser_count=0;

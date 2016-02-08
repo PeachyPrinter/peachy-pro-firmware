@@ -104,18 +104,12 @@ void set_pwm(int32_t xout,int32_t yout,uint32_t laserpower){
     TIM_SetCompare4(TIM2, yout & 0x1FF);
 
     if (laserpower > 0) {
-      //laser_on();
-      g_laser_on=1;
+      laser_on();
     } else {
-      //laser_off();
-      g_laser_on=0;
+      laser_off();
     }
     // Laser Power
-    //TIM_SetCompare1(TIM3, laserpower & 0xFF);
-    laserpower=laserpower & 0xFF; //I shouldn't need this, for debug only
-    g_laser_coarse=(laserpower&0b11100000)>>5;
-    laserpower = 6*(laserpower&0b00011111)+69;
-    TIM_SetCompare1(TIM3, 0xFF);
+    TIM_SetCompare1(TIM3, laserpower & 0xFF);
 }
 
 void update_pwm(void) {

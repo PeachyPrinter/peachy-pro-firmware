@@ -32,42 +32,63 @@ uint8_t move_start = 0;
 uint8_t move_count = 0;
 Move move_buffer[MOVE_SIZE];
 
+uint8_t g_laser_state=0;
+uint8_t g_laser_leds=0;
+uint16_t g_laser_button_debounce=0;
 
 void delay_ms(int ms) {
   uint32_t end = tick + (ms*2);
   while(tick < end);
 }
 
-void coilBuzzer(void){
-  if((g_key_coil_gate==1) & (g_key_beeps>0)){
-
-    if ((g_key_beeps&0x1)==1){ //beep on odd counts
-      buzzCoilStep();
-    }
-    g_key_beep_counter=g_key_beep_counter-1;
-    if (g_key_beep_counter==0){
-      g_key_beeps=g_key_beeps-1;
-      g_key_beep_counter=KEY_TONE_LENGTH;
-    }
-  }
-  else if(g_twig_coils){
-    twigCoils();
+void laser_handler(){
+  g_laser_button_debounce = g_laser_button_debounce<<1;
+  g_laser_button_debounce += getDebugSwitch();
+  if ((g_laser_state == 0 ) & (g_laser_button_debounce==0xFFFF)) {
+    g_laser_state = 1;
+    g_laser_leds=(g_laser_leds+1)%5;
+  }else if (g_laser_button_debounce==0){
+    g_laser_state = 0;
   }
 }
 
-void toggle_dripper(){
-  uint8_t ndripper_toggle_bit;
-	ndripper_toggle_bit = !(GPIO_ReadOutputDataBit(GPIOA,GPIO_Pin_0));
-	GPIO_WriteBit(GPIOA, GPIO_Pin_0,ndripper_toggle_bit);
+void led_handler(){
+  switch (g_laser_leds){
+    case 0:
+      setCornerLed(0);
+      setCoilLed(0);
+      setInLed(0);
+      setUSBLed(0);
+      break;
+    case 1:
+      setCornerLed(1);
+      set_pwm(0,0,128);
+      break;
+    case 2:
+      setCoilLed(1);
+      set_pwm(0,0,170);
+      break;
+    case 3:
+      setInLed(1);
+      set_pwm(0,0,212);
+      break;
+    case 4:
+      setUSBLed(1);
+      set_pwm(0,0,255);
+      break;
+    default:
+      setCornerLed(0);
+      setCoilLed(0);
+      setInLed(0);
+      setUSBLed(0);
+      break;
+  }
 }
 
 void SysTick_Handler(void) {
   tick += 1;
-  update_pwm();
-  update_key_state();
-  check_adcLockout();
-	coilBuzzer();
-	toggle_dripper();
+  laser_handler();
+  led_handler();
 }
 
 void init_serial_number() {
@@ -85,11 +106,6 @@ void init_serial_number() {
 
 int main(void)
 {
-	bootloaderSwitcher();
-
-  init_serial_number();
-	USB_Start();
-  
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
@@ -98,11 +114,9 @@ int main(void)
 	setupLeds();
 
 	initialize_led_override();
-	if (LED_OVERRIDES_EN){
-		play_long_spin(); //Spin the led's while we load the rest of this stuff
-	}
+	play_long_spin(); //Spin the led's while we load the rest of this stuff
 
-  setup_keycard();
+  //setup_keycard();
   initialize_pwm();
   initialize_dripper();
 
@@ -116,15 +130,6 @@ int main(void)
   int last_drip_count = g_dripcount;
 
   while(1) {
-    serialio_feed();
-    updateADC();
-    if (move_count!=0){
-      g_twig_coils=0;
-      g_key_coil_gate=0;
-    }
-    if (g_dripcount != last_drip_count) {
-      last_drip_count = g_dripcount;
-      send_updated_drip_count();
-    }
+      //setUSBLed(getDebugSwitch());
   }
 }

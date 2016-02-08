@@ -256,7 +256,7 @@ void setInLed(uint8_t instate){
 
 void setUSBLed(uint8_t instate){
   if (g_led_control)
-    GPIO_WriteBit(GPIOB, GPIO_Pin_12, instate); //Inside corner
+    GPIO_WriteBit(GPIOB, GPIO_Pin_12, instate);
 }
 
 void laser_on(void) {
@@ -270,12 +270,12 @@ void laser_on(void) {
       laser_gating=0;
   }
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, laser_gating);
-  setInLed(laser_gating);
+  //setInLed(laser_gating);
 }
 
 void laser_off(void) {
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, 0);
-  setInLed(0);
+  //setInLed(0);
 }
 
 uint8_t getDebugSwitch(){
