@@ -59,6 +59,7 @@ void led_handler(){
       setCoilLed(0);
       setInLed(0);
       setUSBLed(0);
+      set_pwm(0,0,0);
       break;
     case 1:
       setCornerLed(1);
