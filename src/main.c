@@ -63,11 +63,10 @@ void toggle_dripper(){
 
 void SysTick_Handler(void) {
   tick += 1;
-  update_pwm();
-  update_key_state();
-  check_adcLockout();
-	coilBuzzer();
-	toggle_dripper();
+  if (tick & 0x1)
+    set_pwm(0,0,255);
+  else
+    set_pwm(0,0,0);
 }
 
 void init_serial_number() {
@@ -85,11 +84,6 @@ void init_serial_number() {
 
 int main(void)
 {
-	bootloaderSwitcher();
-
-  init_serial_number();
-	USB_Start();
-  
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
@@ -98,13 +92,11 @@ int main(void)
 	setupLeds();
 
 	initialize_led_override();
-	if (LED_OVERRIDES_EN){
-		play_long_spin(); //Spin the led's while we load the rest of this stuff
-	}
-
-  setup_keycard();
-  initialize_pwm();
-  initialize_dripper();
+	LED_OVERRIDES_EN){
+	play_long_spin(); //Spin the led's while we load the rest of this stuff
+	
+  	initialize_pwm();
+ 	 initialize_dripper();
 
 	setCornerLed(0);
 	setInLed(0);
