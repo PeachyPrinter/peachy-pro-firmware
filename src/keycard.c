@@ -153,7 +153,7 @@ void send_printer_status() {
   record.keyInserted = (g_adc_state == ADC_LOCKOUT_VALID);
   record.overrideSwitch = (g_adc_state == ADC_LOCKOUT_VALID);
   record.laserOn = g_laser_gating;
-  record.laserPowerFeedback = 42fd;
+  record.laserPowerFeedback = 42;
   status = pb_encode(&stream, PrinterStatus_fields, &record);
   if (status) {
     serialio_write(out, stream.bytes_written);
