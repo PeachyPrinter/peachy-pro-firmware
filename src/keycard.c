@@ -8,6 +8,9 @@
 #include "keycard.h"
 #include "ADClockout.h"
 
+#include "serialio.h"
+#include "messages.pb.h"
+#include "pb_encode.h"
 
 uint8_t g_key_state=KEY_MISSING;
 uint32_t g_key_code=0;
@@ -15,6 +18,8 @@ uint32_t g_key_pos=0;
 uint32_t g_key_beeps=0;
 uint32_t g_key_beep_counter=0;
 
+
+extern bool g_laser_gating;
 extern uint8_t g_adc_state;
 
 void setup_keycard(void){
@@ -132,4 +137,26 @@ void key_check(uint8_t key_bit){
     g_key_pos=0;
     g_key_code=0;
   }
+}
+
+void send_printer_status() {
+  uint8_t out[16];
+  uint8_t type;
+  pb_ostream_t stream = pb_ostream_from_buffer(out, sizeof(out));
+  bool status;
+  PrinterStatus record;
+
+  type = PRINTER_STATUS;
+  pb_write(&stream, &type, 1);
+
+  record.cardInserted = (g_key_state == KEY_VALID);
+  record.keyInserted = (g_adc_state == ADC_LOCKOUT_VALID);
+  record.overrideSwitch = (g_adc_state == ADC_LOCKOUT_VALID);
+  record.laserOn = g_laser_gating;
+  record.laserPowerFeedback = 42fd;
+  status = pb_encode(&stream, PrinterStatus_fields, &record);
+  if (status) {
+    serialio_write(out, stream.bytes_written);
+  }
+
 }

@@ -23,7 +23,7 @@ void setup_keycard(void);
 void read_key(void);
 void key_check(uint8_t key_bit);
 void update_key_state(void);
-
+void send_printer_status();
 
 
 #endif /* INC_KEYCARD_H_ */

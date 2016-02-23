@@ -16,6 +16,8 @@ volatile uint32_t g_coil_twig_state=0;
 volatile uint32_t g_musicVar=0;
 volatile uint8_t g_led_control=1;
 
+volatile bool g_laser_gating = 0;
+
 extern volatile uint32_t tick;
 extern uint8_t g_adc_state;
 extern uint8_t g_key_state;
@@ -249,8 +251,9 @@ void setCoilLed(uint8_t instate){
 }
 
 void setInLed(uint8_t instate){
-  if (g_led_control)
+  if (g_led_control) {
     GPIO_WriteBit(GPIOB, GPIO_Pin_13, instate); //Inside corner
+  }
 }	
 
 void setUSBLed(uint8_t instate){
@@ -269,12 +272,14 @@ void laser_on(void) {
       laser_gating=0;
   }
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, laser_gating);
+  g_laser_gating = laser_gating;
   setInLed(laser_gating);
 }
 
 void laser_off(void) {
   GPIO_WriteBit(GPIOB, GPIO_Pin_5, 0);
   setInLed(0);
+  g_laser_gating = 0;
 }
 
 uint8_t getDebugSwitch(){

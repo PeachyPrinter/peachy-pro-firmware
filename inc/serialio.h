@@ -27,7 +27,8 @@ typedef enum {
 	ENTER_BOOTLOADER = 10,
 	SET_FIRM_FLAG = 11,
 	GET_ADC_VAL = 12,
-	RETURN_ADC_VAL = 13
+	RETURN_ADC_VAL = 13,
+  PRINTER_STATUS = 14,
 } message_types_t;
 
 void serialio_feed(void);

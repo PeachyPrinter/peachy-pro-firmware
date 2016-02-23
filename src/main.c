@@ -111,7 +111,7 @@ int main(void)
 	setCoilLed(0);
 	setUSBLed(0);
 
-  SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 24KHz, so a count of 24000 should be 1 second?
+  SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 2000.awx, so a count of 2000 is
 
   int last_drip_count = g_dripcount;
 
@@ -126,5 +126,8 @@ int main(void)
       last_drip_count = g_dripcount;
       send_updated_drip_count();
     }
+    if ((tick % 500) == 0) {
+      send_printer_status();
+    } 
   }
 }
