@@ -63,6 +63,7 @@ void toggle_dripper(){
 
 void SysTick_Handler(void) {
   tick += 1;
+  kick_watchdog();
   update_pwm();
   update_key_state();
   check_adcLockout();
@@ -78,7 +79,7 @@ void init_watchdog(){
 
   IWDG->KR = 0xCCCC; //Wake up the watchdog
   IWDG->KR = 0x5555; //Unlock Watchdog timer registers
-  IWDG->PR = 001; // prescaler of 8
+  IWDG->PR = 0x1; // prescaler of 8
 
   //LSI clock this runs on is ~40kHz (30kHz - 60kHz)
   // Roll over every 100ms
@@ -117,7 +118,8 @@ int main(void)
 	setupJP6();
 	setupLeds();
   init_watchdog();
-	//debug:
+
+	//debug: flas the light on boot, to watch for watchdog resets
 	setCoilLed(1);
 
 	initialize_led_override();
@@ -134,12 +136,11 @@ int main(void)
 	setCoilLed(0);
 	setUSBLed(0);
 
-  SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 2000.awx, so a count of 2000 is
+  SysTick_Config(SystemCoreClock / 2000); //48MHz/2000 gives us 2000 ticks per second (2KHz)
 
   int last_drip_count = g_dripcount;
 
   while(1) {
-    kick_watchdog();
     serialio_feed();
     updateADC();
     if (move_count!=0){

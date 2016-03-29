@@ -21,9 +21,13 @@ uint32_t g_start_drip_tick=0;
 uint16_t g_drip_state=DRIPPER_IDLE;
 
 void EXTI0_1_IRQHandler(void) {
+  static int led_toggle_state=0;
+
+
   //Dripper
-  setCoilLed(1);
   if (EXTI_GetITStatus(EXTI_Line1) != RESET) { //if it's the dripper that called this
+    setCoilLed(led_toggle_state);
+    led_toggle_state=!led_toggle_state;
 
     //Start off from idle state
     if (g_drip_state==DRIPPER_IDLE){
@@ -84,7 +88,6 @@ void EXTI0_1_IRQHandler(void) {
     read_key(); //Read the key bits
     EXTI_ClearITPendingBit(EXTI_Line0);
   }
-  setCoilLed(0);
 }
 
 void initialize_debouncer(void) {

@@ -26,6 +26,7 @@ void RebootToBootloader(){
 	//Steps:
 	//1) Set magic value at magic place in ram
 	//2) reboot
+  __disable_irq(); //Disable interrupts for more consistant timings
   *BOOTLOADER_MAGIC_ADDR = BOOTLOADER_MAGIC_TOKEN;
 	NVIC_SystemReset();
 }
