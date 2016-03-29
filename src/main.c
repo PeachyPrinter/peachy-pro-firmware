@@ -69,6 +69,26 @@ void SysTick_Handler(void) {
 	coilBuzzer();
 	toggle_dripper();
 }
+void init_watchdog(){
+  RCC->CSR |= 0x1; //bit 0 of RCC_SCR is LSI clock enable (watchdog only
+  while((RCC->CSR & 0x2)==0){ //bit 1 of RCC_CSR is LSIRDY (1 when LSI is running)
+    //Wait for LSI clock to become ready
+    //If needed put some sort of timeout here? (early break?)
+  }
+
+  IWDG->KR = 0xCCCC; //Wake up the watchdog
+  IWDG->KR = 0x5555; //Unlock Watchdog timer registers
+  IWDG->PR = 001; // prescaler of 8
+
+  //LSI clock this runs on is ~40kHz (30kHz - 60kHz)
+  // Roll over every 100ms
+  // Counts down from RLR (default: 0xFFF)
+  // RLR = 100ms*(40KHz/8)
+  IWDG->RLR = 500;
+}
+void kick_watchdog(){
+  IWDG->KR=0xAAAA; //AAAAH (restart the watchdog timer)
+}
 
 void init_serial_number() {
   uint32_t* serial_base = (uint32_t*)0x1FFFF7AC;
@@ -96,6 +116,9 @@ int main(void)
 	setupJP5();
 	setupJP6();
 	setupLeds();
+  init_watchdog();
+	//debug:
+	setCoilLed(1);
 
 	initialize_led_override();
 	if (LED_OVERRIDES_EN){
@@ -116,6 +139,7 @@ int main(void)
   int last_drip_count = g_dripcount;
 
   while(1) {
+    kick_watchdog();
     serialio_feed();
     updateADC();
     if (move_count!=0){

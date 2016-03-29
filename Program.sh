@@ -32,7 +32,7 @@ while true; do
 	read -p "Give option (q|1|2|3|4|5|6|7):" input
 	
 	if [ $input == 1 ]; then
-		dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -v -d 16d0:0af3
+		dfu-util -a 0 --dfuse-address 0x08000000 -D main.bin -d 16d0:0af3
 	elif [ $input == 2 ]; then
 		make
 		MODE="USER-COMPILED"
