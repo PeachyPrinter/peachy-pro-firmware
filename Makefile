@@ -57,7 +57,7 @@ OBJS = $(SRCS:.c=.o)
 
 .PHONY: lib proj usb nanopb version
 
-all: lib usb nanopb proj main.bin
+all: lib usb nanopb proj main.bin main.dfu
 
 usb:
 	$(MAKE) -C $(USB_PERIPH_LIB)
@@ -81,6 +81,9 @@ $(PROJ_NAME).elf: $(SRCS) $(USB_PERIPH_LIB)/libpersea-usb.a inc/version.h
 
 $(PROJ_NAME).bin: $(PROJ_NAME).elf
 	$(OBJCOPY) -O binary $(PROJ_NAME).elf $(PROJ_NAME).bin
+
+$(PROJ_NAME).dfu: $(PROJ_NAME).bin
+	python dfuse/stm32f042_bin2img.py $(PROJ_NAME).bin $(PROJ_NAME).dfu
 
 program: $(PROJ_NAME).bin
 #	openocd -f $(OPENOCD_BOARD_DIR)/stm32f0discovery.cfg -f $(OPENOCD_PROC_FILE) -c "stm_flash `pwd`/$(PROJ_NAME).bin" -c shutdown
